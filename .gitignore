@@ -1,2 +1,5 @@
 .idea/
 __pycache__/
+.vim/
+__test.py
+.vscode/

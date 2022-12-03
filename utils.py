@@ -27,33 +27,15 @@ def create_action_matrix():
     action_matrix = [[[]] * 5] * 5
     for i in range(0, 5):
         for j in range(0, 5):
-            action_matrix[i][j] = get_valid_actions((i, j))
+            action_matrix[i][j] = get_avail_actions((i, j))
     return action_matrix
 
 
 def blind_move(pos: tuple[int, int], action: Action):
     x, y = pos
-    if action == Action.MOVE_UP:
-        x += 1
-    elif action == Action.MOVE_DOWN:
-        x -= 1
-    elif action == Action.MOVE_LEFT:
-        y -= 1
-    elif action == Action.MOVE_RIGHT:
-        y += 1
-    elif action == Action.MOVE_UP_LEFT:
-        x += 1
-        y -= 1
-    elif action == Action.MOVE_DOWN_RIGHT:
-        x -= 1
-        y += 1
-    elif action == Action.MOVE_UP_RIGHT:
-        x += 1
-        y += 1
-    elif action == Action.MOVE_DOWN_LEFT:
-        x -= 1
-        y -= 1
-    return x, y
+    movex, movey = action.value
+    return (x + movex, y + movey)
+
 
 
 def get_at(board: list[list[int]], pos: tuple[int, int]):
@@ -81,7 +63,7 @@ def get_active_position(prev_board: list[list[int]], board: list[list[int]], pla
     return active_position, is_possibility_trap
 
 
-def get_valid_actions(position):
+def get_avail_actions(position):
     x, y = position
     index_sum = x + y
     if index_sum % 2 == 0:
@@ -107,3 +89,16 @@ def get_valid_actions(position):
                 action != Action.MOVE_RIGHT and action != Action.MOVE_UP_RIGHT and action != Action.MOVE_DOWN_RIGHT
         )]
     return valid_actions
+
+def is_valid_position(pos: tuple[int, int]) -> bool:
+    x, y = pos
+    return 0 <= x <= 4 and 0<= y <= 4
+
+def get_player_position(board: list[list[int]], player_num: int) -> list[tuple[int, int]]:
+    w, h = len(board), len(board[0])
+    res = []
+    for i in range (w):
+        for j in range(h):
+            if board[i][j] == player_num:
+                res.append((i,j))
+    return res
