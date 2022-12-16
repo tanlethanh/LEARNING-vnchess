@@ -2,11 +2,11 @@ from enum import Enum
 
 
 class Action(Enum):
-    MOVE_UP = (1,0)
-    MOVE_DOWN = (-1,0)
+    MOVE_UP = (1, 0)
+    MOVE_DOWN = (-1, 0)
     MOVE_LEFT = (0, -1)
     MOVE_RIGHT = (0, 1)
-    MOVE_UP_LEFT = (1,-1)
+    MOVE_UP_LEFT = (1, -1)
     MOVE_DOWN_RIGHT = (-1, 1)
     MOVE_UP_RIGHT = (1, 1)
     MOVE_DOWN_LEFT = (-1, -1)
@@ -33,12 +33,6 @@ class Action(Enum):
         x, y = self.value
         return Action((-x, -y))
 
-    # @staticmethod
-    # def get_positive_action():
-    #     return [Action(-action.value) for action in list(Action)]
-
-
-
-
-
-
+    @staticmethod
+    def get_half_actions():
+        return [Action.MOVE_UP, Action.MOVE_RIGHT, Action.MOVE_UP_RIGHT, Action.MOVE_UP_LEFT]

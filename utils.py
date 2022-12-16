@@ -34,8 +34,7 @@ def create_action_matrix():
 def blind_move(pos: tuple[int, int], action: Action):
     x, y = pos
     movex, movey = action.value
-    return (x + movex, y + movey)
-
+    return x + movex, y + movey
 
 
 def get_at(board: list[list[int]], pos: tuple[int, int]):
@@ -90,15 +89,17 @@ def get_avail_actions(position):
         )]
     return valid_actions
 
+
 def is_valid_position(pos: tuple[int, int]) -> bool:
     x, y = pos
-    return 0 <= x <= 4 and 0<= y <= 4
+    return 0 <= x <= 4 and 0 <= y <= 4
+
 
 def get_player_position(board: list[list[int]], player_num: int) -> list[tuple[int, int]]:
     w, h = len(board), len(board[0])
     res = []
-    for i in range (w):
+    for i in range(w):
         for j in range(h):
             if board[i][j] == player_num:
-                res.append((i,j))
+                res.append((i, j))
     return res
