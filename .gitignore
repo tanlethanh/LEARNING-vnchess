@@ -3,3 +3,4 @@ __pycache__/
 .vim/
 __test.py
 .vscode/
+.history
