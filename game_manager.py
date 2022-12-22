@@ -2,7 +2,7 @@ import sys
 import traceback
 
 from action import Action
-from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board
+from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board, get_avail_half_actions
 import numpy as np
 
 def get_start():
@@ -65,19 +65,13 @@ def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int], Acti
         if adjacent_num == 0:
             starts = []
             is_trap = False
+            next_pos = blind_move(adjacent_pos, action)
+            if (get_at(board, next_pos) == -player_num):
 
-            for sub_action in Action.get_half_actions():
-                pos_1, pos_2 = blind_move(adjacent_pos, sub_action), \
-                               blind_move(adjacent_pos, sub_action.get_opposite())
-                num_1, num_2 = get_at(board, pos_1), get_at(board, pos_2)
-
-                if num_1 == -player_num and num_2 == -player_num:
-                    is_trap = True
-
-                if num_1 == player_num:
-                    starts.append(pos_1)
-                if num_2 == player_num:
-                    starts.append(pos_2)
+                for sub_action in get_avail_actions(adjacent_pos):
+                    player_pos = blind_move(adjacent_pos, sub_action)
+                    if (get_at(board, player_pos)) == player_num:
+                        starts.append(player_pos)
 
             if is_trap and len(starts) > 0:
                 traps += [(start, adjacent_pos) for start in starts]
@@ -184,6 +178,10 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
             break
     if not is_valid:
         print(chessman_actions)
+        if is_possibility_trap:
+            print("trap")
+        else:
+            print("not trap")
         raise Exception(f"Action is not valid: {_start} -> {_end}")
 
     i, j = _end
