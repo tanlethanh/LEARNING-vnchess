@@ -54,7 +54,7 @@ def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _
     return active_position, is_possibility_trap
 
 
-def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int], Action]]:
+def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int]]]:
     # TODO: Exact trap from last move of opponent
     traps = []
     for action in list(Action):
@@ -136,6 +136,7 @@ def get_surrounded_chesses(board, player_num):
 
 def surround(board, surrounded_teams):
     for team in surrounded_teams:
+        print("\tSurround")
         for chess_index in team:
             x, y = chess_index
             board[x][y] *= -1
@@ -144,8 +145,11 @@ def surround(board, surrounded_teams):
 
 def update_board(_prev_board, _board, _start, _end, _player_num):
     """
-    This method update board by moving from start to end location
-    Raise error if moving is not valid
+    This method update board by moving from start to end location.
+    Raise error if moving is not valid.
+
+    Value in _board matrix will be changed,
+    make sure the passing _board is a copied board if you don't want to change _board.
 
     :param _prev_board:
     :param _board:
@@ -190,9 +194,15 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
         i1, j1 = blind_move(_end, action)
         i2, j2 = blind_move(_end, action.get_opposite())
 
+        list_index = [i1, j1, i2, j2]
+
+        if -1 in list_index:
+            continue
+
         # This blind move can go out of board
         try:
             if _board[i1][j1] == -_player_num and _board[i2][j2] == -_player_num:
+                print(f"\tUpdate board: kill at {i1, j1} and {i2, j2}")
                 _board[i1][j1] = _player_num
                 _board[i2][j2] = _player_num
         except Exception as e:
@@ -219,11 +229,18 @@ def check_winner(_board: list[list[int]]):
         return 0
 
 
-def move1(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
-    return get_start(), get_end()
+def input_move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+    active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player)
 
+    # Get all actions of chessman list pair (start, action)
+    chessman_actions = []
+    if is_possibility_trap and active_position is not None:
+        chessman_actions = get_traps(_board, active_position, _player)
 
-def move2(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+    if len(chessman_actions) > 0:
+        print("\tInput move")
+        print(f"\t\t Traps: {chessman_actions}")
+
     return get_start(), get_end()
 
 
@@ -231,7 +248,7 @@ def change_player(_cur_player):
     return -_cur_player
 
 
-def play_game(prev_board, board, cur_player):
+def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move):
     print("--------------------------- Game start ---------------------------\n")
     print(f"Active position: {get_active_position(prev_board, board, -cur_player)}")
 
@@ -246,12 +263,12 @@ def play_game(prev_board, board, cur_player):
         print(f"Player: {'X' if cur_player == 1 else 'O'}")
 
         if cur_player == 1:
-            start, end = move1(copy_board(prev_board), copy_board(board), cur_player,
-                               _remain_time_x=1000, _remain_time_o=1000)
+            start, end = _move1(copy_board(prev_board), copy_board(board), cur_player,
+                                _remain_time_x=1000, _remain_time_o=1000)
 
         elif cur_player == -1:
-            start, end = move2(copy_board(prev_board), copy_board(board), cur_player,
-                               _remain_time_x=1000, _remain_time_o=1000)
+            start, end = _move2(copy_board(prev_board), copy_board(board), cur_player,
+                                _remain_time_x=1000, _remain_time_o=1000)
 
         else:
             raise Exception(f"\tCurrent player is not valid {cur_player}")
@@ -268,12 +285,9 @@ def play_game(prev_board, board, cur_player):
             print(f"Play again {cur_player}\n")
             continue
 
-
         print_board(board)
         cur_player = change_player(cur_player)
 
     print((check_winner(board)))
 
     print("--------------------------- Game stop ---------------------------")
-
-
