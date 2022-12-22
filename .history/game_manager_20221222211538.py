@@ -103,19 +103,16 @@ def get_actions_of_chessman(_board, _pos):
 
 
 def get_surrounded_chesses(board, player_num):
-    # print("Getting surround team")
     current_board = copy_board(board)
-    # print(current_board)
+
     w, h = len(current_board), len(current_board[0])
     teams = []
     for i in range(w):
         for j in range(h):
-            if int(current_board[i][j]) == 2:
-                continue
-            if int(current_board[i][j]) == -player_num:
-                # print("current", i, j, current_board[i][j])
+            if current_board[i][j] == -player_num:
                 team = []
                 explore = []
+                team.append((i, j))
                 explore.append((i, j))
                 is_surrounded = True
                 while len(explore) != 0:
@@ -123,19 +120,19 @@ def get_surrounded_chesses(board, player_num):
                     moves = get_avail_actions((curr_x, curr_y))
                     for move in moves:
                         next_x, next_y = blind_move((curr_x, curr_y), move)
-                        if is_valid_position((next_x, next_y)) and int(current_board[next_x][next_y]) != 2 and int(current_board[next_x][next_y]) != player_num:
-                            if int(current_board[next_x][next_y]) == 0:
+                        if is_valid_position((next_x, next_y)) and current_board[next_x][next_y] != 2:
+                            if current_board[next_x][next_y] == 0:
                                 is_surrounded = False
-                            elif int(current_board[next_x][next_y]) == -player_num:
+                            elif current_board[next_x][next_y] == -player_num:
+                                team.append((next_x, next_y))
                                 explore.append((next_x, next_y))
-                    if is_surrounded:
-                        team.append((curr_x, curr_y))
                     current_board[curr_x][curr_y] = 2
+                current_board[i][j] = 2
 
                 if is_surrounded:
-                    teams += team
-    return teams
+                    teams.append(team)
 
+    return teams
 
 
 def surround(board, surrounded_teams):
