@@ -69,25 +69,31 @@ def get_avail_actions(position):
         valid_actions = list(Action)
     else:
         valid_actions = [Action.MOVE_UP, Action.MOVE_DOWN, Action.MOVE_LEFT, Action.MOVE_RIGHT]
+    result = []
+    for action in valid_actions:
+        end = blind_move(position, action)
+        if is_valid_position(end):
+            result += [action]
+    return result
 
-    if x == 0:
-        valid_actions = [action for action in valid_actions if (
-                action != Action.MOVE_DOWN and action != Action.MOVE_DOWN_LEFT and action != Action.MOVE_DOWN_RIGHT
-        )]
-    elif x == 4:
-        valid_actions = [action for action in valid_actions if (
-                action != Action.MOVE_UP and action != Action.MOVE_UP_LEFT and action != Action.MOVE_UP_RIGHT
-        )]
+    # if x == 0:
+    #     valid_actions = [action for action in valid_actions if (
+    #             action != Action.MOVE_DOWN and action != Action.MOVE_DOWN_LEFT and action != Action.MOVE_DOWN_RIGHT
+    #     )]
+    # elif x == 4:
+    #     valid_actions = [action for action in valid_actions if (
+    #             action != Action.MOVE_UP and action != Action.MOVE_UP_LEFT and action != Action.MOVE_UP_RIGHT
+    #     )]
 
-    if y == 0:
-        valid_actions = [action for action in valid_actions if (
-                action != Action.MOVE_LEFT and action != Action.MOVE_DOWN_LEFT and action != Action.MOVE_UP_LEFT
-        )]
-    elif y == 4:
-        valid_actions = [action for action in valid_actions if (
-                action != Action.MOVE_RIGHT and action != Action.MOVE_UP_RIGHT and action != Action.MOVE_DOWN_RIGHT
-        )]
-    return valid_actions
+    # if y == 0:
+    #     valid_actions = [action for action in valid_actions if (
+    #             action != Action.MOVE_LEFT and action != Action.MOVE_DOWN_LEFT and action != Action.MOVE_UP_LEFT
+    #     )]
+    # elif y == 4:
+    #     valid_actions = [action for action in valid_actions if (
+    #             action != Action.MOVE_RIGHT and action != Action.MOVE_UP_RIGHT and action != Action.MOVE_DOWN_RIGHT
+    #     )]
+    # return valid_actions
 
 
 def is_valid_position(pos: tuple[int, int]) -> bool:
