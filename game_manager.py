@@ -135,6 +135,7 @@ def get_surrounded_chesses(board, player_num):
 
                 if is_surrounded:
                     teams += team
+    print(f"-------- Surround: {teams}")
     return teams
 
 
