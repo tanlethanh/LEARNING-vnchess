@@ -119,32 +119,28 @@ def get_surrounded_chesses(board, player_num):
                 is_surrounded = True
                 while len(explore) != 0:
                     curr_x, curr_y = explore.pop()
-                    # print("pop: ", curr_x, curr_y )
                     moves = get_avail_actions((curr_x, curr_y))
                     for move in moves:
-                        if (move in Action.get_half_actions()):
-                            next_x, next_y = blind_move((curr_x, curr_y), move)
-                            if is_valid_position((next_x, next_y)) and int(current_board[next_x][next_y]) != 2 and int(current_board[next_x][next_y]) != player_num:
-                                if int(current_board[next_x][next_y]) == 0:
-                                    is_surrounded = False
-                                    # print('not surround', next_x, next_y)
-                                elif int(current_board[next_x][next_y]) == -player_num:
-                                    explore.append((next_x, next_y))
+                        next_x, next_y = blind_move((curr_x, curr_y), move)
+                        if is_valid_position((next_x, next_y)) and int(current_board[next_x][next_y]) != 2 and int(current_board[next_x][next_y]) != player_num:
+                            if int(current_board[next_x][next_y]) == 0:
+                                is_surrounded = False
+                            elif int(current_board[next_x][next_y]) == -player_num:
+                                explore.append((next_x, next_y))
                     if is_surrounded:
                         team.append((curr_x, curr_y))
                     current_board[curr_x][curr_y] = 2
 
                 if is_surrounded:
-                    # print("surrounded")
-                    teams.append(team)
+                    teams += team
     return teams
 
 
-def surround(board, surrounded_teams):
-    for team in surrounded_teams:
-        for chess_index in team:
-            x, y = chess_index
-            board[x][y]  *= -1
+def surround(board, surrounded_teams, new_value):
+    for chess_index in surrounded_teams:
+        x, y = chess_index
+        if board[x][y] != new_value:
+            board[x][y] = new_value
     return board
 
 
@@ -212,7 +208,7 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
 
     # cap nhat neu co vay
     surround_teams = get_surrounded_chesses(_board, _player_num)
-    _board = surround(_board, surround_teams)
+    _board = surround(_board, surround_teams, _player_num)
 
     return _board
 

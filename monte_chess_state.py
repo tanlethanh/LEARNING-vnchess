@@ -88,7 +88,7 @@ class ChessVNState(AbstractGameState):
             # print_board(new_board)
             # print('vay of', self.next_to_move)
             # print(surround_teams)
-            new_board = surround(new_board, surround_teams)
+            new_board = surround(new_board, surround_teams, self.next_to_move)
             # print("board after surround")
             # print_board(new_board)
 

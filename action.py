@@ -36,3 +36,6 @@ class Action(Enum):
     @staticmethod
     def get_half_actions():
         return [Action.MOVE_UP, Action.MOVE_RIGHT, Action.MOVE_UP_RIGHT, Action.MOVE_UP_LEFT]
+    
+    def __eq__(self, __o: object) -> bool:
+        return self.value == __o.value
