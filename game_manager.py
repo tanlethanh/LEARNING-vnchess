@@ -213,7 +213,7 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
 
     # cap nhat neu co vay
     surround_teams = get_surrounded_chesses(_board, _player_num)
-    surround(_board, surround_teams)
+    surround(_board, surround_teams, _player_num)
 
     return _board
 
