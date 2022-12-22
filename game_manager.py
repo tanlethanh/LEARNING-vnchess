@@ -2,6 +2,7 @@ import sys
 import traceback
 
 from action import Action
+from temp import test_case_steps
 from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board
 
 
@@ -57,7 +58,7 @@ def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _
 def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int]]]:
     # TODO: Exact trap from last move of opponent
     traps = []
-    for action in list(Action):
+    for action in get_avail_actions(active_pos):
         adjacent_pos = blind_move(active_pos, action)
         adjacent_num = get_at(board, adjacent_pos)
 
@@ -230,6 +231,13 @@ def check_winner(_board: list[list[int]]):
 
 
 def input_move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+    try:
+        start, end = test_case_steps.pop(0)
+        return start, end
+    except Exception as e:
+        print(e)
+        print("END Testcase")
+
     active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player)
 
     # Get all actions of chessman list pair (start, action)
@@ -241,7 +249,19 @@ def input_move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
         print("\tInput move")
         print(f"\t\t Traps: {chessman_actions}")
 
-    return get_start(), get_end()
+    while True:
+        try:
+            start, end = get_start(), get_end()
+            break
+        except Exception as e:
+            print("\n--------------------------------")
+            print(e)
+            print(traceback.format_exc())
+            print(sys.exc_info()[2])
+            print("--------------------------------\n")
+            print(f"Play again {_player}\n")
+
+    return start, end
 
 
 def change_player(_cur_player):
