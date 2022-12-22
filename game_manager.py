@@ -3,7 +3,7 @@ import traceback
 
 from action import Action
 from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board
-
+import numpy as np
 
 def get_start():
     xy = input("\tStart (x,y): ")
@@ -56,6 +56,7 @@ def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _
 
 def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int], Action]]:
     # TODO: Exact trap from last move of opponent
+    # Result shape [(start_pos, action)]
     traps = []
     for action in list(Action):
         adjacent_pos = blind_move(active_pos, action)
@@ -94,43 +95,48 @@ def get_actions_of_chessman(_board, _pos):
     actions = get_avail_actions(_pos)
     actions_of_chessman = []
     for action in actions:
-        x, y = blind_move(_pos, action)
-        if _board[x][y] == 0:
+        new_pos = blind_move(_pos, action)
+        if int(get_at(_board, pos=new_pos)) == 0:
             actions_of_chessman.append(action)
-
     return actions_of_chessman
 
 
 def get_surrounded_chesses(board, player_num):
+    # print("Getting surround team")
     current_board = copy_board(board)
-
+    # print(current_board)
     w, h = len(current_board), len(current_board[0])
     teams = []
     for i in range(w):
         for j in range(h):
-            if current_board[i][j] == -player_num:
+            if int(current_board[i][j]) == 2:
+                continue
+            if int(current_board[i][j]) == -player_num:
+                # print("current", i, j, current_board[i][j])
                 team = []
                 explore = []
-                team.append((i, j))
                 explore.append((i, j))
                 is_surrounded = True
                 while len(explore) != 0:
                     curr_x, curr_y = explore.pop()
+                    # print("pop: ", curr_x, curr_y )
                     moves = get_avail_actions((curr_x, curr_y))
                     for move in moves:
-                        next_x, next_y = blind_move((curr_x, curr_y), move)
-                        if is_valid_position((next_x, next_y)) and current_board[next_x][next_y] != 2:
-                            if current_board[next_x][next_y] == 0:
-                                is_surrounded = False
-                            elif current_board[next_x][next_y] == -player_num:
-                                team.append((next_x, next_y))
-                                explore.append((next_x, next_y))
+                        if (move in Action.get_half_actions()):
+                            next_x, next_y = blind_move((curr_x, curr_y), move)
+                            if is_valid_position((next_x, next_y)) and int(current_board[next_x][next_y]) != 2 and int(current_board[next_x][next_y]) != player_num:
+                                if int(current_board[next_x][next_y]) == 0:
+                                    is_surrounded = False
+                                    # print('not surround', next_x, next_y)
+                                elif int(current_board[next_x][next_y]) == -player_num:
+                                    explore.append((next_x, next_y))
+                    if is_surrounded:
+                        team.append((curr_x, curr_y))
                     current_board[curr_x][curr_y] = 2
-                current_board[i][j] = 2
 
                 if is_surrounded:
+                    # print("surrounded")
                     teams.append(team)
-
     return teams
 
 
@@ -138,7 +144,7 @@ def surround(board, surrounded_teams):
     for team in surrounded_teams:
         for chess_index in team:
             x, y = chess_index
-            board[x][y] *= -1
+            board[x][y]  *= -1
     return board
 
 
@@ -156,16 +162,21 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
     """
     i, j = _start
     if _board[i][j] != _player_num:
+        print(_board[i][j])
+        print(_player_num)
         raise Exception("Start position is not valid")
 
-    active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player_num)
+    active_position, is_possibility_trap = False, False
+    if _prev_board is not None:
+        active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player_num)
 
     # Get all actions of chessman list pair (start, action)
     chessman_actions = []
     if is_possibility_trap and active_position is not None:
-        chessman_actions = get_traps(_board, active_position, _player_num)
+        chessman_actions = get_traps(_board, active_position, _player_num) #[(start, end)]
 
     if not is_possibility_trap or len(chessman_actions) == 0:
+        # print("hh")
         actions = get_actions_of_chessman(_board, _start)
         chessman_actions = [(_start, blind_move(_start, action)) for action in actions]
 
@@ -176,6 +187,7 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
             is_valid = True
             break
     if not is_valid:
+        print(chessman_actions)
         raise Exception(f"Action is not valid: {_start} -> {_end}")
 
     i, j = _end
@@ -200,7 +212,7 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
 
     # cap nhat neu co vay
     surround_teams = get_surrounded_chesses(_board, _player_num)
-    surround(_board, surround_teams)
+    _board = surround(_board, surround_teams)
 
     return _board
 
@@ -277,3 +289,97 @@ def play_game(prev_board, board, cur_player):
     print("--------------------------- Game stop ---------------------------")
 
 
+
+#Get possible moves from current state:
+
+def check_move_valid(board, move, player):
+    x1, y1 = move['pos']
+    if  not (0<= x1<len(board)) or not (0<=y1<len(board)) or board[x1][y1] != player:
+        # print("invail move", x1, y1)
+        # print_board(board)
+        return False
+    action = move['move']
+    x2, y2 = blind_move((x1, y1), action)
+    if not (0<= x2 <len(board)) or not (0<=y2<len(board)) or board[x2][y2] != 0:
+        # print("invail move2", x2, y2)
+        # print_board(board)
+        return False
+    return True
+    
+#move valid move of player and return new board
+def move_chess(board, move, player):
+    xx, yy = move['pos']
+    x, y = blind_move(move['pos'], move['move'])
+    board[x][y] = player
+    board[xx][yy] = 0
+
+def get_valid_actions(board, player):
+    # trap_informs = get_traps(board)
+    trap_inform = get_pos_action_traps(board, player)
+    if len(trap_inform) != 0:
+        return trap_inform
+    w, h = len(board), len(board[0])
+    res = []
+    for i in range(w):
+        for j in range(h):
+            if get_at(board,(i,j)) == player:
+                actions = get_actions_of_chessman(board, (i,j))
+                res += [
+                    {
+                    'pos': (i,j),
+                    'move': action 
+                    } for action in actions
+                ]
+    if len(res) == 0:
+        print("can;t get action")
+        print_board(board)
+        exit()
+    return res
+
+
+def get_pos_action_traps(board, player_num) -> list[tuple[int, int], Action]:
+    # TODO: Exact trap from last move of opponent
+    '''
+    Params:
+        board: current board state
+        active_pos: current position of last player moved chess
+        player_num: player_num of next move player
+    Returns:
+        list((start_pos), action)
+    '''
+    # Result shape [(start_pos, action)]
+    traps = []
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            if board[i][j] != 0:
+                continue
+            is_possible_trap = False
+
+            for sub_action in Action.get_half_actions():
+                pos_1, pos_2 = blind_move((i,j), sub_action), \
+                            blind_move((i,j), sub_action.get_opposite())
+                num_1, num_2 = get_at(board, pos_1), get_at(board, pos_2)
+                if num_1 == -player_num and num_2 == -player_num:
+                    is_possible_trap = True
+                    break
+            if not is_possible_trap:
+                continue
+            pos_actions = []
+
+            for sub_action in get_avail_actions((i,j)):
+                pos_1, pos_2 = blind_move((i,j), sub_action), blind_move((i,j), sub_action.get_opposite())
+                num_1, num_2 = get_at(board, pos_1), get_at(board, pos_2)
+
+                if num_1 == player_num:
+                    pos_actions.append({
+                        'pos': pos_1,
+                        'move': sub_action.get_opposite()
+                    })
+                if num_2 == player_num:
+                    pos_actions.append({
+                        'pos': pos_2,
+                        'move': sub_action
+                    })
+            if len(pos_actions) != 0:
+                traps += pos_actions
+    return traps
