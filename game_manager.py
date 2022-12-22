@@ -123,7 +123,8 @@ def get_surrounded_chesses(board, player_num):
                     moves = get_avail_actions((curr_x, curr_y))
                     for move in moves:
                         next_x, next_y = blind_move((curr_x, curr_y), move)
-                        if is_valid_position((next_x, next_y)) and int(current_board[next_x][next_y]) != 2 and int(current_board[next_x][next_y]) != player_num:
+                        if is_valid_position((next_x, next_y)) and int(current_board[next_x][next_y]) != 2 and int(
+                                current_board[next_x][next_y]) != player_num:
                             if int(current_board[next_x][next_y]) == 0:
                                 is_surrounded = False
                             elif int(current_board[next_x][next_y]) == -player_num:
@@ -137,13 +138,11 @@ def get_surrounded_chesses(board, player_num):
     return teams
 
 
-
-def surround(board, surrounded_teams):
-    for team in surrounded_teams:
-        print("\tSurround")
-        for chess_index in team:
-            x, y = chess_index
-            board[x][y] *= -1
+def surround(board, surrounded_teams, new_value):
+    for chess_index in surrounded_teams:
+        x, y = chess_index
+        if board[x][y] != new_value:
+            board[x][y] = new_value
     return board
 
 
