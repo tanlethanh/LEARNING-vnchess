@@ -13,7 +13,7 @@ if __name__ == "__main__":
     while not game_manager.check_winner(board):
         
         print_board(board)
-        time.sleep(1)
+        # time.sleep(1)
         print("{} turn".format('x' if turn == 1 else 'o'))
         if turn == human:
             monte = MonteAgent(board,human,1000)

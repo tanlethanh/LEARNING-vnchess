@@ -73,9 +73,23 @@ def get_avail_actions(position):
     for action in valid_actions:
         end = blind_move(position, action)
         if is_valid_position(end):
-            result += [action]
+            result.append(action)
     return result
 
+def get_avail_half_actions(position):
+    x, y = position
+    index_sum = x + y
+    if index_sum % 2 == 0:
+        valid_actions = Action.get_half_actions()
+    else:
+        valid_actions = [Action.MOVE_UP, Action.MOVE_RIGHT]
+    result = []
+    for action in valid_actions:
+        end = blind_move(position, action)
+        if is_valid_position(end):
+            result += [action]
+    return result
+    
     # if x == 0:
     #     valid_actions = [action for action in valid_actions if (
     #             action != Action.MOVE_DOWN and action != Action.MOVE_DOWN_LEFT and action != Action.MOVE_DOWN_RIGHT
