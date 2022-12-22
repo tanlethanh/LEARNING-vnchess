@@ -15,9 +15,9 @@ MAX, MIN = 1000, -1000
 
 def evaluation(node):
     score = numpy.sum(node.board)
-    if score == 16:
-        print("-------------------------------------- WIN --------------------------------------")
-        sys.exit()
+    # if score == 16:
+    #     print("-------------------------------------- WIN --------------------------------------")
+    #     sys.exit()
     return score
 
 
