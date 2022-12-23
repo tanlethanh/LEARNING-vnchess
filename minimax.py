@@ -115,7 +115,7 @@ def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3):
 def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
     cur_node = Node(_prev_board, _board, _player)
 
-    max_value = minimax(node=cur_node, is_max_player=True, alpha=MIN, beta=MAX, depth=0, max_depth=4)
+    max_value = minimax(node=cur_node, is_max_player=True, alpha=MIN, beta=MAX, depth=0, max_depth=3)
 
     for child in cur_node.children:
         if max_value == child.get_value():

@@ -2,13 +2,14 @@ import numpy as np
 from collections import defaultdict
 from monte_chess_state import *
 from game_manager import *
-
+import time
 class MonteCarloTreeSearchNode():
     def __init__(self, state,parent_action = None, parent = None):
         '''
         Params: state: monte_carlo_board_state
         parent: node
         '''
+        np.random.seed(int(time.time()))
         self.state = state
         self.parent = parent
         self.parent_action = parent_action

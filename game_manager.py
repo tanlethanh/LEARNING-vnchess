@@ -205,7 +205,7 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
 
         if(is_valid_position((i1,j1)) and is_valid_position((i2,j2))):
             if _board[i1][j1] == _board[i2][j2] == -_player_num:
-                print(f"\tUpdate board: kill at {i1, j1} and {i2, j2}")
+                # print(f"\tUpdate board: kill at {i1, j1} and {i2, j2}")
                 _board[i1][j1] = _player_num
                 _board[i2][j2] = _player_num
         # This blind move can go out of board
