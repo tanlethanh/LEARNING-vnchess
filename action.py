@@ -2,14 +2,14 @@ from enum import Enum
 
 
 class Action(Enum):
-    MOVE_UP = (1, 0)
-    MOVE_DOWN = (-1, 0)
-    MOVE_LEFT = (0, -1)
-    MOVE_RIGHT = (0, 1)
-    MOVE_UP_LEFT = (1, -1)
-    MOVE_DOWN_RIGHT = (-1, 1)
-    MOVE_UP_RIGHT = (1, 1)
-    MOVE_DOWN_LEFT = (-1, -1)
+    MOVE_UP         = ( 1,  0)
+    MOVE_DOWN       = (-1,  0)
+    MOVE_LEFT       = ( 0, -1)
+    MOVE_RIGHT      = ( 0,  1)
+    MOVE_UP_LEFT    = ( 1, -1)
+    MOVE_DOWN_RIGHT = (-1,  1)
+    MOVE_UP_RIGHT   = ( 1,  1)
+    MOVE_DOWN_LEFT  = (-1, -1)
 
     def __str__(self) -> str:
         if self == Action.MOVE_UP:
@@ -36,3 +36,6 @@ class Action(Enum):
     @staticmethod
     def get_half_actions():
         return [Action.MOVE_UP, Action.MOVE_RIGHT, Action.MOVE_UP_RIGHT, Action.MOVE_UP_LEFT]
+    
+    def __eq__(self, __o: object) -> bool:
+        return self.value == __o.value
