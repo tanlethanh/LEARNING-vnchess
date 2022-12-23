@@ -10,29 +10,62 @@ if __name__ == "__main__":
     human = 1
     bot = -1
     turn = human
-    while not game_manager.check_winner(board):
+    duration_1 = 50
+    duration_2 = 50
+    move = 50
+    while True:
         
         print_board(board)
-        # time.sleep(1)
         print("{} turn".format('x' if turn == 1 else 'o'))
+        time.sleep(0.5)
         if turn == human:
-            monte = MonteAgent(board,human,1000)
-            best_move = monte.move().parent_action
+            time_start = time.time()
+            monte = MonteAgent(board,human,remain_duration=duration_1, level='expert')
+            best_child = monte.move()
+            best_move = best_child.parent_action
             start = best_move['pos']
             end = (start[0] + best_move['move'].value[0], start[1] + best_move['move'].value[1])
+            time_end = time.time()
+            print((best_child.q / best_child.n))
+            print(np.sqrt((2 * np.log(best_child.parent.n) / best_child.n)))
             print(best_move)
             print("X start:", start)
             print("X end:", end)
+            duration_1 -= (time_end - time_start)
         else:
-            monte = MonteAgent(board,bot,1000)
-            best_move = monte.move().parent_action
+            time_start = time.time()
+            monte = MonteAgent(board,bot, remain_duration=duration_2,level='easy')
+            best_child = monte.move()
+            best_move = best_child.parent_action
             start = best_move['pos']
             end = (start[0] + best_move['move'].value[0], start[1] + best_move['move'].value[1])
+            time_end = time.time()
+            print((best_child.q / best_child.n))
+            print(np.sqrt((2 * np.log(best_child.parent.n) / best_child.n)))
             print(best_move)
             print("O start:", start)
             print("O end:", end)
+            duration_2 -= (time_end - time_start)
         cp_board = game_manager.copy_board(board)
         board = game_manager.update_board(prev_board, board, start, end, turn)
+        if duration_1 < 0:
+            print('player 1 lose, timeout')
+            print('player 1 remain duration', duration_1)
+            print('player 2 remain duration', duration_2)
+
+            break
+        if duration_2 < 0:
+            print('player 2 lose, timeout')
+            print('player 1 remain duration', duration_1)
+            print('player 2 remain duration', duration_2)
+
+            break
+        if (check_winner(board) != 0):
+            print("{} win".format('x' if turn == 1 else 'o'))
+            print('player 1 remain duration', duration_1)
+            print('player 2 remain duration', duration_2)
+
+            break
         prev_board = cp_board
         turn *= -1
         

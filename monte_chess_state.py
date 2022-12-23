@@ -1,5 +1,6 @@
 from game_manager import *
 import numpy as np
+from monte_utils import *
 class AbstractGameState():
     def game_result(self) -> int:
         '''
@@ -54,12 +55,17 @@ class ChessVNState(AbstractGameState):
 
     @property
     def game_result(self) -> int:
-        x = np.sum(np.array(self.board))
-        return x
+        x_op = len(get_valid_actions(self.board, 1))
+        o_op = len(get_valid_actions(self.board,-1))
+        value = (np.sum(np.array(self.board)))
+        if value == 16 or value == -16:
+            return value / 2
+        return (value + (x_op - o_op)) / 16
         # return np.sum(np.array(self.board)) > 0 ? 1: 1
 
     def is_game_over(self) -> bool:
-        return self.game_result == 16 or self.game_result == -16
+        x = np.sum(np.array(self.board))
+        return x == 16 or x == -16
 
     def is_move_legal(self, move):
         return check_move_valid(self.board, move, player=self.next_to_move)
@@ -84,14 +90,7 @@ class ChessVNState(AbstractGameState):
         
         surround_teams = get_surrounded_chesses(new_board, self.next_to_move)
         if len(surround_teams) != 0:
-            # print("board before surround")
-            # print_board(new_board)
-            # print('vay of', self.next_to_move)
-            # print(surround_teams)
             new_board = surround(new_board, surround_teams, self.next_to_move)
-            # print("board after surround")
-            # print_board(new_board)
-
         next_to_move = - self.next_to_move
         return type(self) (new_board, next_to_move, self.win)
     

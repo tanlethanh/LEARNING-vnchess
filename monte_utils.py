@@ -1,4 +1,5 @@
 from utils import *
+from game_manager import get_actions_of_chessman
 #Get possible moves from current state:
 
 def check_move_valid(board, move, player):
@@ -39,10 +40,10 @@ def get_valid_actions(board, player):
                     'move': action 
                     } for action in actions
                 ]
-    if len(res) == 0:
-        print("can;t get action")
-        print_board(board)
-        exit()
+    # if len(res) == 0:
+        # print("can;t get action")
+        # print_board(board)
+        # exit()
     return res
 
 

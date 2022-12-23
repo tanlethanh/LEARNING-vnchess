@@ -10,7 +10,7 @@ class ChessVNMonteCarloTreeSearch(object):
         '''
         self.root = node
 
-    def best_action(self, simulations_number = None, total_simulation_seconds=None):
+    def best_action(self, simulations_number = None, total_simulation_seconds=None, c_param = 1.4, deep_threshold = 100):
         '''
         params:
         simulations_numbers: int
@@ -25,14 +25,14 @@ class ChessVNMonteCarloTreeSearch(object):
             end_time = time.time() + total_simulation_seconds
             while time.time() <= end_time:
                 v = self._tree_policy()
-                reward = v.rollout()
+                reward = v.rollout(deep_threshold)
                 v.backpropagate(reward)
         else:
             for _ in range(0, simulations_number):
                 v = self._tree_policy()
-                reward = v.rollout()
+                reward = v.rollout(deep_threshold)
                 v.backpropagate(reward)
-        return self.root.best_child(c_param=1.0)
+        return self.root.best_child(c_param=c_param)
 
     def _tree_policy(self) -> ChessVNNode:
         '''

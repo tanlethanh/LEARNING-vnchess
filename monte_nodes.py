@@ -52,13 +52,6 @@ class MonteCarloTreeSearchNode():
             (c.q / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
             for c in self.children
         ]
-        if len(choices_weights) == 0:
-            print(self.children)
-            print_board(self.state.board)
-            print(self)
-            print(self.parent)
-            print(self.parent_action)
-            # exit()
         return self.children[np.argmax(choices_weights)] #return child with greatest promise value
 
     def rollout_policy(self, possible_moves):
@@ -71,6 +64,7 @@ class ChessVNNode(MonteCarloTreeSearchNode):
         super().__init__( state, parent_action, parent)
         self._number_of_visits = 0.
         self._results = defaultdict(int)
+        # self._results = []
         self._untried_actions = None
 
     @property
@@ -81,9 +75,14 @@ class ChessVNNode(MonteCarloTreeSearchNode):
 
     @property
     def q(self):
-        wins = self._results[self.parent.state.next_to_move]
-        loses = self._results[-1 * self.parent.state.next_to_move]
-        return wins - loses
+        # wins = np.sum(self._results)
+        # [self.parent.state.next_to_move]
+        # loses = self._results[-1 * self.parent.state.next_to_move]
+        res = 0
+        for i in self._results:
+            res += self._results[i]
+        return res 
+        # - loses
     
     @property
     def n(self):
@@ -104,10 +103,6 @@ class ChessVNNode(MonteCarloTreeSearchNode):
         assert(isinstance(current_rollout_state, ChessVNState))
         while not current_rollout_state.is_game_over():
             possible_moves = current_rollout_state.get_legal_actions()
-            if len(possible_moves) == 0:
-                print("cant-get possible move")
-                print(current_rollout_state.board)
-                exit()
             action = self.rollout_policy(possible_moves)
             current_rollout_state = current_rollout_state.move(action)
             threshold -=1
@@ -116,7 +111,8 @@ class ChessVNNode(MonteCarloTreeSearchNode):
         return current_rollout_state.game_result
     
     def backpropagate(self, reward):
+
+        self._results[self._number_of_visits] += reward * self.state.next_to_move
         self._number_of_visits += 1.
-        self._results[reward] += 1.
         if self.parent is not None:
             self.parent.backpropagate(reward)
