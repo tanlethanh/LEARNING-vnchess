@@ -4,6 +4,8 @@ import traceback
 from action import Action
 from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board, get_avail_half_actions
 import numpy as np
+from temp import test_case_steps
+
 
 def get_start():
     xy = input("\tStart (x,y): ")
@@ -54,11 +56,11 @@ def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _
     return active_position, is_possibility_trap
 
 
-def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int], Action]]:
+def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int]]]:
     # TODO: Exact trap from last move of opponent
     # Result shape [(start_pos, action)]
     traps = []
-    for action in list(Action):
+    for action in get_avail_actions(active_pos):
         adjacent_pos = blind_move(active_pos, action)
         adjacent_num = get_at(board, adjacent_pos)
 
@@ -116,7 +118,8 @@ def get_surrounded_chesses(board, player_num):
                     moves = get_avail_actions((curr_x, curr_y))
                     for move in moves:
                         next_x, next_y = blind_move((curr_x, curr_y), move)
-                        if is_valid_position((next_x, next_y)) and int(current_board[next_x][next_y]) != 2 and int(current_board[next_x][next_y]) != player_num:
+                        if is_valid_position((next_x, next_y)) and int(current_board[next_x][next_y]) != 2 and int(
+                                current_board[next_x][next_y]) != player_num:
                             if int(current_board[next_x][next_y]) == 0:
                                 is_surrounded = False
                             elif int(current_board[next_x][next_y]) == -player_num:
@@ -140,8 +143,11 @@ def surround(board, surrounded_teams, new_value):
 
 def update_board(_prev_board, _board, _start, _end, _player_num):
     """
-    This method update board by moving from start to end location
-    Raise error if moving is not valid
+    This method update board by moving from start to end location.
+    Raise error if moving is not valid.
+
+    Value in _board matrix will be changed,
+    make sure the passing _board is a copied board if you don't want to change _board.
 
     :param _prev_board:
     :param _board:
@@ -198,6 +204,7 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
 
         if(is_valid_position((i1,j1)) and is_valid_position((i2,j2))):
             if _board[i1][j1] == _board[i2][j2] == -_player_num:
+                print(f"\tUpdate board: kill at {i1, j1} and {i2, j2}")
                 _board[i1][j1] = _player_num
                 _board[i2][j2] = _player_num
         # This blind move can go out of board
@@ -223,19 +230,45 @@ def check_winner(_board: list[list[int]]):
         return 0
 
 
-def move1(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
-    return get_start(), get_end()
+def input_move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+    try:
+        start, end = test_case_steps.pop(0)
+        return start, end
+    except Exception as e:
+        print(e)
+        print("END Testcase")
 
+    active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player)
 
-def move2(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
-    return get_start(), get_end()
+    # Get all actions of chessman list pair (start, action)
+    chessman_actions = []
+    if is_possibility_trap and active_position is not None:
+        chessman_actions = get_traps(_board, active_position, _player)
+
+    if len(chessman_actions) > 0:
+        print("\tInput move")
+        print(f"\t\t Traps: {chessman_actions}")
+
+    while True:
+        try:
+            start, end = get_start(), get_end()
+            break
+        except Exception as e:
+            print("\n--------------------------------")
+            print(e)
+            print(traceback.format_exc())
+            print(sys.exc_info()[2])
+            print("--------------------------------\n")
+            print(f"Play again {_player}\n")
+
+    return start, end
 
 
 def change_player(_cur_player):
     return -_cur_player
 
 
-def play_game(prev_board, board, cur_player):
+def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move):
     print("--------------------------- Game start ---------------------------\n")
     print(f"Active position: {get_active_position(prev_board, board, -cur_player)}")
 
@@ -250,12 +283,12 @@ def play_game(prev_board, board, cur_player):
         print(f"Player: {'X' if cur_player == 1 else 'O'}")
 
         if cur_player == 1:
-            start, end = move1(copy_board(prev_board), copy_board(board), cur_player,
-                               _remain_time_x=1000, _remain_time_o=1000)
+            start, end = _move1(copy_board(prev_board), copy_board(board), cur_player,
+                                _remain_time_x=1000, _remain_time_o=1000)
 
         elif cur_player == -1:
-            start, end = move2(copy_board(prev_board), copy_board(board), cur_player,
-                               _remain_time_x=1000, _remain_time_o=1000)
+            start, end = _move2(copy_board(prev_board), copy_board(board), cur_player,
+                                _remain_time_x=1000, _remain_time_o=1000)
 
         else:
             raise Exception(f"\tCurrent player is not valid {cur_player}")
@@ -272,12 +305,9 @@ def play_game(prev_board, board, cur_player):
             print(f"Play again {cur_player}\n")
             continue
 
-
         print_board(board)
         cur_player = change_player(cur_player)
 
     print((check_winner(board)))
 
     print("--------------------------- Game stop ---------------------------")
-
-
