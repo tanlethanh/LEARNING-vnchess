@@ -130,6 +130,7 @@ def get_surrounded_chesses(board, player_num):
 
                 if is_surrounded:
                     teams += team
+    # print(f"-------- Surround: {teams}")
     return teams
 
 
@@ -308,6 +309,8 @@ def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_mov
         print_board(board)
         cur_player = change_player(cur_player)
 
-    print((check_winner(board)))
+    winner = check_winner(board)
+    winner = "X" if winner == 1 else ("O" if winner == -1 else "None")
+    print(f"⭐ ⭐ ⭐ Winner {winner} ⭐ ⭐ ⭐")
 
-    print("--------------------------- Game stop ---------------------------")
+    print("\n--------------------------- Game stop ---------------------------")
