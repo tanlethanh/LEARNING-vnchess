@@ -66,7 +66,6 @@ def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int]]]:
 
         if adjacent_num == 0:
             starts = []
-            is_trap = False
             next_pos = blind_move(adjacent_pos, action)
             if (get_at(board, next_pos) == -player_num):
 
@@ -75,7 +74,7 @@ def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int]]]:
                     if (get_at(board, player_pos)) == player_num:
                         starts.append(player_pos)
 
-            if is_trap and len(starts) > 0:
+            if len(starts) > 0:
                 traps += [(start, adjacent_pos) for start in starts]
 
     return traps
