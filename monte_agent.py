@@ -2,6 +2,7 @@ from monte_carlo_tree_search import ChessVNMonteCarloTreeSearch
 from monte_nodes import ChessVNNode
 from monte_chess_state import ChessVNState
 from game_manager import *
+from monte_utils import *
 import numpy as np
 
 state = [
@@ -13,12 +14,13 @@ state = [
     ]
 
 class MonteAgent():
-    def __init__(self, state, player, remain_move = None, remain_duration = None, level= 'easy'):
+    def __init__(self,prev_state, state, player, remain_move = None, remain_duration = None, level= 'easy'):
         np.random.seed(1234)
         self.level = level
         self.remain_move = remain_move
         self.remain_duration = remain_duration
-        self.initial_board_state = ChessVNState(state=state, next_to_move=player)
+        parent_move = get_last_move(prev_state, state, -player)
+        self.initial_board_state = ChessVNState( state = state, parent_move=parent_move, next_to_move=player)
         self.root = ChessVNNode(state=self.initial_board_state)
         self.engine = ChessVNMonteCarloTreeSearch(self.root)
         self.duration = 50

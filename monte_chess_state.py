@@ -37,15 +37,13 @@ class AbstractGameState():
 
 class ChessVNState(AbstractGameState):
     #next to move: next player
-    def __init__(self, state, next_to_move=1, win=None):
+    def __init__(self, state = None, parent_move = None,  next_to_move=1):
         '''
         state: chess board
         '''
         self.board = state
+        self.prev_move = parent_move
         self.board_size = np.array(state).shape[0]
-        if win is None:
-            win = self.board_size
-        self.win = win
         self.next_to_move = next_to_move
     
     # def __str__(self) -> str:
@@ -55,8 +53,8 @@ class ChessVNState(AbstractGameState):
 
     @property
     def game_result(self) -> int:
-        x_op = len(get_valid_actions(self.board, 1))
-        o_op = len(get_valid_actions(self.board,-1))
+        x_op = len(get_valid_actions(self.prev_move, self.board, 1))
+        o_op = len(get_valid_actions(self.prev_move, self.board,-1))
         value = (np.sum(np.array(self.board)))
         if value == 16 or value == -16:
             return value / 2
@@ -89,10 +87,11 @@ class ChessVNState(AbstractGameState):
                 new_board[pos2[0]][pos2[1]] = new_board[x][y]
         
         surround_teams = get_surrounded_chesses(new_board, self.next_to_move)
+
         if len(surround_teams) != 0:
             new_board = surround(new_board, surround_teams, self.next_to_move)
         next_to_move = - self.next_to_move
-        return type(self) (new_board, next_to_move, self.win)
+        return type(self) (new_board, move, next_to_move)
     
     def get_legal_actions(self):
-        return get_valid_actions(self.board, self.next_to_move)
+        return get_valid_actions(self.prev_move, self.board, self.next_to_move)
