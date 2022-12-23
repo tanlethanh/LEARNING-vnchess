@@ -23,11 +23,22 @@ def move_chess(board, move, player):
     board[x][y] = player
     board[xx][yy] = 0
 
-def get_valid_actions(prev_move, board, player):
+def get_valid_actions( prev_board, board, player, prev_move):
     # trap_informs = get_traps(board)
-    trap_inform = get_pos_action_traps(prev_move, board, player)
-    if len(trap_inform) != 0:
-        return trap_inform
+    w, h = len(board), len(board[0])
+
+    if prev_board is not None:
+        open_move_flag = True
+        for i in range(h):
+            for j in range(w):
+                if board[i][j] == -player and prev_board[i][j] == player:
+                    open_move_flag = False
+
+        if open_move_flag:
+            # print("not vay")
+            trap_inform = get_pos_action_traps(prev_move, board, player)
+            if len(trap_inform) != 0:
+                return trap_inform
     w, h = len(board), len(board[0])
     res = []
     for i in range(w):
@@ -40,10 +51,6 @@ def get_valid_actions(prev_move, board, player):
                     'move': action 
                     } for action in actions
                 ]
-    # if len(res) == 0:
-        # print("can;t get action")
-        # print_board(board)
-        # exit()
     return res
 
 
@@ -96,19 +103,21 @@ def get_pos_action_traps(prev_move, board, player_num) -> list[tuple[int, int], 
     if prev_move is None:
         return traps
     op_pos = blind_move(prev_move['pos'], prev_move['move'])
+    # print('current_pos', op_pos)
     for adj_action in get_avail_actions(op_pos):
         adj_pos = blind_move(op_pos, adj_action)
         adj_num = get_at(board, adj_pos)
         if adj_num != 0:
             continue
-
         next_op_pos = blind_move(adj_pos, adj_action)
         if get_at(board, next_op_pos) != get_at(board, op_pos):
             continue
+        # print("posible trap pos: ", adj_pos)
+        # print("Next pos: ", next_op_pos)
         for action in get_avail_half_actions(adj_pos):
             pos_1, pos_2 = blind_move(adj_pos, action), blind_move(adj_pos, action.get_opposite())
             num_1, num_2 = get_at(board, pos_1), get_at(board, pos_2)
-
+            # print("2 oposite pos: ", pos_1, pos_2, num_1, num_2)
             if num_1 == player_num:
                 traps.append({
                     'pos': pos_1,
@@ -119,6 +128,7 @@ def get_pos_action_traps(prev_move, board, player_num) -> list[tuple[int, int], 
                     'pos': pos_2,
                     'move': action
                 })
+    # print(len(traps))
     return traps
 
 

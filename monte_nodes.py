@@ -50,7 +50,7 @@ class MonteCarloTreeSearchNode():
     def best_child(self, c_param = 1.4):
         # exit()
         choices_weights = [
-            (c.q / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
+            float(c.q)/float(c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
             for c in self.children
         ]
         return self.children[np.argmax(choices_weights)] #return child with greatest promise value
@@ -61,12 +61,15 @@ class MonteCarloTreeSearchNode():
     
 class ChessVNNode(MonteCarloTreeSearchNode):
 
-    def __init__(self, state, parent_action = None, parent=None):
+    def __init__(self, state, parent_action = None, parent=None, index = None):
         super().__init__( state, parent_action, parent)
         self._number_of_visits = 0.
         self._results = defaultdict(int)
-        # self._results = []
+        self.index = index
         self._untried_actions = None
+        self._vay = defaultdict(int)
+        self._ganh = defaultdict(int)
+        self._mo = defaultdict(int)
 
     @property
     def untried_actions(self):
@@ -74,14 +77,24 @@ class ChessVNNode(MonteCarloTreeSearchNode):
             self._untried_actions = self.state.get_legal_actions()
         return self._untried_actions
 
+    
     @property
     def q(self):
         # wins = np.sum(self._results)
         # [self.parent.state.next_to_move]
         # loses = self._results[-1 * self.parent.state.next_to_move]
         res = 0
-        for i in self._results:
-            res += self._results[i]
+        # q_res_array = np.array(list(self._results))
+        # q_res = np.sum(q_res_array/(np.max(q_res_array) + 1.0))
+        # q_vay_array = np.array(list(self._vay))
+        # q_vay = np.sum(q_vay_array/(np.max(q_vay_array) + 1.0))
+        # q_ganh_array = np.array(list(self._ganh))
+        # q_ganh = np.sum(q_ganh_array/(np.max(q_ganh_array)+ 1.0))
+        # q_mo_array = np.array(list(self._mo))
+        # q_mo = np.sum(q_mo_array/(np.max(q_mo_array) + 1.0))
+        
+        # res = 2.0 * float(q_res) + 0 * float(q_ganh) - 0. * float(q_mo) + 0.*float(q_vay)
+        return np.sum(np.array(list(self._results)))
         return res 
         # - loses
     
@@ -91,8 +104,9 @@ class ChessVNNode(MonteCarloTreeSearchNode):
     
     def expand(self):
         action = self.untried_actions.pop()
-        next_state = self.state.move(action)
-        child_node = ChessVNNode(next_state, parent_action=action, parent= self)
+        next_state, _, _, _ = self.state.move(action)
+        child_index = len(self.children)
+        child_node = ChessVNNode(next_state, parent_action=action, parent= self, index= child_index)
         self.children.append(child_node)
         return child_node
 
@@ -100,20 +114,57 @@ class ChessVNNode(MonteCarloTreeSearchNode):
         return self.state.is_game_over()
     
     def rollout(self, threshold = 100):
+        '''
+            make simulation through node with depth threshold
+            params: threshold: int
+            returns: 
+                end_node game result, num of _ganh, _vay, _mo make by this node player
+        '''
         current_rollout_state = self.state
+        # print(current_rollout_state)
         assert(isinstance(current_rollout_state, ChessVNState))
+        _ganh, _vay, _mo = 0, 0, 0
+        # print("----"*20 )
+        # print("Before roll out")
+        # print_board(current_rollout_state.board)
+        # print( _ganh, _vay, _mo)
         while not current_rollout_state.is_game_over():
             possible_moves = current_rollout_state.get_legal_actions()
             action = self.rollout_policy(possible_moves)
-            current_rollout_state = current_rollout_state.move(action)
+            current_player = current_rollout_state.next_to_move
+            current_rollout_state, ganh, vay, mo = current_rollout_state.move(action)
+            _ganh += ganh * current_player
+            _vay += vay * current_player
+            _mo += mo * current_player
             threshold -=1
             if threshold < 0:
                 break
-        return current_rollout_state.game_result
+            # print("----"*20 )
+            # print("Rolling")
+            # print_board(current_rollout_state.board)
+            # print( _ganh, _vay, _mo)
+            # print("----"*20 )
+        # print("----"*20 )
+        # print("After rollout")
+        # print_board(current_rollout_state.board)
+        # print( _ganh, _vay, _mo)
+        # print("----"*20 )
+        # time.sleep(100)
+        return current_rollout_state.game_result, _ganh, _vay, _mo
     
-    def backpropagate(self, reward):
-
-        self._results[self._number_of_visits] += reward * self.state.next_to_move
+    def backpropagate(self, reward, index):
+        '''
+        params:
+            reward: game_result, num_ganh, num_vay, num_mo
+        '''
+        assert(index is not None)
+        game_result, ganh, vay, mo = reward
+        # self._ganh[index] += ganh  * self.state.next_to_move
+        # self._vay[index] += vay * self.state.next_to_move
+        # self._mo[index] += mo * self.state.next_to_move
+        self._results[index] += game_result * self.state.next_to_move
         self._number_of_visits += 1.
         if self.parent is not None:
-            self.parent.backpropagate(reward)
+            assert(isinstance(self.parent, ChessVNNode))
+            self.parent.backpropagate(reward, self.index)
+

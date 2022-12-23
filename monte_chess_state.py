@@ -1,6 +1,8 @@
 from game_manager import *
 import numpy as np
 from monte_utils import *
+import time
+np.random.seed(int(time.time()))
 class AbstractGameState():
     def game_result(self) -> int:
         '''
@@ -37,10 +39,11 @@ class AbstractGameState():
 
 class ChessVNState(AbstractGameState):
     #next to move: next player
-    def __init__(self, state = None, parent_move = None,  next_to_move=1):
+    def __init__(self,parent_state = None, state = None, parent_move = None,  next_to_move=1):
         '''
         state: chess board
         '''
+        self.prev_board = parent_state
         self.board = state
         self.prev_move = parent_move
         self.board_size = np.array(state).shape[0]
@@ -69,9 +72,23 @@ class ChessVNState(AbstractGameState):
         return check_move_valid(self.board, move, player=self.next_to_move)
 
     def move(self, move):
+        # transform state to new state by trigger move,
+        '''
+        params:
+            move:{
+                'pos':tuple(int, int),
+                'move': Action
+                }
+        returns:
+            new_state, num_ganh, num_vay, num_mo
+        '''
+        ganh = 0
+        vay = 0
+        mo = 0
         if not self.is_move_legal(move):
             raise Exception("move{0} on board{1} is not legal".format(move, self.board))
         new_board = copy_board(self.board)
+        prev_board = copy_board(self.board)
         init_x, init_y = move['pos']
         x, y = blind_move(move['pos'], move['move'])
         new_board[x][y] = new_board[init_x][init_y]
@@ -85,13 +102,39 @@ class ChessVNState(AbstractGameState):
                 # print('ganh at', pos1, pos2, self.next_to_move)
                 new_board[pos1[0]][pos1[1]] = new_board[x][y]
                 new_board[pos2[0]][pos2[1]] = new_board[x][y]
-        
+                ganh += 1
+
         surround_teams = get_surrounded_chesses(new_board, self.next_to_move)
 
         if len(surround_teams) != 0:
             new_board = surround(new_board, surround_teams, self.next_to_move)
+            vay += len(surround_teams)
+        mo = len(get_pos_action_traps(board= new_board, prev_move=move, player_num= -self.next_to_move))
         next_to_move = - self.next_to_move
-        return type(self) (new_board, move, next_to_move)
+        return type(self) (prev_board, new_board, move, next_to_move), ganh, vay, mo
     
     def get_legal_actions(self):
         return get_valid_actions(self.prev_move, self.board, self.next_to_move)
+
+
+if __name__ == "__main__":
+    prev_board = [
+        [ 1, -1,  0,  0,  0],
+        [-1,  0,  0,  0,  0],
+        [ 1,  0, -1,  0,  0],
+        [ 0, -1,  0,  0,  0],
+        [ 0,  0,  0,  0,  0],
+    ]
+    state = ChessVNState(None, prev_board, None, -1)
+    for i in range(10):
+        actions = get_valid_actions(state.prev_board, state.board, state.next_to_move, state.prev_move)
+        print(get_valid_actions(state.prev_board, state.board, state.next_to_move, state.prev_move))
+        move = actions[np.random.randint(len(actions))]
+        print("Take action: ", move)
+        state, ganh, vay, mo = state.move(move)
+        
+        print("----"*20)
+        print_board(state.board)
+        print("----"*20)
+        print(ganh, vay, mo)
+    

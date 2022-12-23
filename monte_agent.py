@@ -36,10 +36,14 @@ class MonteAgent():
                 return self.engine.best_action(simulations_number=500, c_param=self.remain_duration/self.duration, deep_threshold=20)
         if self.level == 'expert':
             if self.remain_duration/self.duration > 0.8:
-                return self.engine.best_action(simulations_number=300, c_param=2., deep_threshold=3)
+                print("beginging")
+                return self.engine.best_action(simulations_number=1000, c_param=6., deep_threshold=5)
             elif self.remain_duration/self.duration > 0.7:
-                return self.engine.best_action(simulations_number=300, c_param=3., deep_threshold=3)
+                print("sau begin")
+                return self.engine.best_action(simulations_number=300, c_param=3., deep_threshold=4)
             elif self.remain_duration/self.duration > 0.4:
-                return self.engine.best_action(simulations_number=300, c_param=2., deep_threshold=4)
+                print("sap end")
+                return self.engine.best_action(simulations_number=300, c_param=2., deep_threshold=3)
             else:
+                print("endgame")
                 return self.engine.best_action(simulations_number=300, c_param=0, deep_threshold=3)

@@ -124,24 +124,3 @@ def get_player_position(board: list[list[int]], player_num: int) -> list[tuple[i
                 res.append((i, j))
     return res
 
-
-def get_last_move(prev_board, board):
-    h, w = len(board), len(board[0])
-    diff_pos = []
-    for i in range(h):
-        for j in range(w):
-            if prev_board[i][j] == board[i][j]:
-                continue
-            diff_pos.append((i,j))
-    if len(diff_pos) != 2:
-        raise Exception("Last move is invalid move")
-    if get_at(board,diff_pos[0]) == 0:
-        start_pos = diff_pos[0]
-        end_pos = diff_pos[1]
-    else:
-        start_pos = diff_pos[1]
-        end_pos = diff_pos[0]
-    return {
-        'pos': start_pos,
-        'move': Action((end_pos[0] - start_pos[0], end_pos[1] - start_pos[1]))
-    }

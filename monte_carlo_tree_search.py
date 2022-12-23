@@ -26,12 +26,12 @@ class ChessVNMonteCarloTreeSearch(object):
             while time.time() <= end_time:
                 v = self._tree_policy()
                 reward = v.rollout(deep_threshold)
-                v.backpropagate(reward)
+                v.backpropagate(reward, v.index)
         else:
             for _ in range(0, simulations_number):
                 v = self._tree_policy()
                 reward = v.rollout(deep_threshold)
-                v.backpropagate(reward)
+                v.backpropagate(reward, v.index)
         return self.root.best_child(c_param=c_param)
 
     def _tree_policy(self) -> ChessVNNode:
