@@ -2,8 +2,7 @@ import sys
 import traceback
 
 from action import Action
-from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board, get_avail_half_actions
-import numpy as np
+from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board
 from temp import test_case_steps
 import time
 
@@ -271,9 +270,9 @@ def change_player(_cur_player):
     return -_cur_player
 
 
-def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move):
-    duration_1 = 100.0
-    duration_2 = 100.0
+def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move, print_out=True):
+    duration_1 = 1000000000000.0
+    duration_2 = 1000000000000.0
     print("--------------------------- Game start ---------------------------\n")
     print(f"Active position: {get_active_position(prev_board, board, -cur_player)}")
 
@@ -285,7 +284,8 @@ def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_mov
 
     while check_winner(board) == 0 and duration_1 > 0 and duration_2 > 0:
 
-        print(f"Player: {'X' if cur_player == 1 else 'O'}")
+        if print_out:
+            print(f"Player: {'X' if cur_player == 1 else 'O'}")
 
         if cur_player == 1:
             start_time = time.time()
@@ -293,14 +293,16 @@ def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_mov
                                 _remain_time_x=duration_1, _remain_time_o=duration_2)
             end_time = time.time()
             duration_1 -= (end_time - start_time)
-            print("Time taked: {:3f}".format(end_time - start_time))
+            if print_out:
+                print("Time taked: {:3f}".format(end_time - start_time))
 
         elif cur_player == -1:
             start_time = time.time()
             start, end = _move2(copy_board(prev_board), copy_board(board), cur_player,
                                 _remain_time_x=duration_1, _remain_time_o=duration_2)
             end_time = time.time()
-            print("Time taked: {:3f}".format(end_time - start_time))
+            if print_out:
+                print("Time taked: {:3f}".format(end_time - start_time))
             duration_2 -= (end_time - start_time)
         else:
             raise Exception(f"\tCurrent player is not valid {cur_player}")
@@ -317,7 +319,8 @@ def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_mov
             print(f"Play again {cur_player}\n")
             continue
 
-        print_board(board)
+        if print_out:
+            print_board(board)
         cur_player = change_player(cur_player)
     if duration_1 <= 0 or duration_2 <= 0:
         print("Time out, draw")
@@ -325,5 +328,6 @@ def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_mov
     winner = check_winner(board)
     winner = "X" if winner == 1 else ("O" if winner == -1 else "None")
     print(f"⭐ ⭐ ⭐ Winner {winner} ⭐ ⭐ ⭐")
-
     print("\n--------------------------- Game stop ---------------------------")
+
+    return winner

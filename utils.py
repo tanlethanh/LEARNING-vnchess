@@ -33,8 +33,8 @@ def create_action_matrix():
 
 def blind_move(pos: tuple[int, int], action: Action):
     x, y = pos
-    movex, movey = action.value
-    return x + movex, y + movey
+    move_x, move_y = action.value
+    return x + move_x, y + move_y
 
 
 def get_at(board: list[list[int]], pos: tuple[int, int]):
@@ -47,19 +47,6 @@ def get_at(board: list[list[int]], pos: tuple[int, int]):
     if not ((0 <= x < 5) and (0 <= y < 5)):
         return None
     return board[x][y]
-
-
-def get_active_position(prev_board: list[list[int]], board: list[list[int]], player_num: int):
-    active_position = None
-    is_possibility_trap = True
-    for i in range(5):
-        for j in range(5):
-            if prev_board[i][j] == -board[i][j]:
-                return None, False
-            if prev_board[i][j] == 0 and board[i][j] == player_num:
-                active_position = i, j
-
-    return active_position, is_possibility_trap
 
 
 def get_avail_actions(position):
@@ -76,6 +63,7 @@ def get_avail_actions(position):
             result.append(action)
     return result
 
+
 def get_avail_half_actions(position) -> list[Action]:
     x, y = position
     index_sum = x + y
@@ -89,25 +77,6 @@ def get_avail_half_actions(position) -> list[Action]:
         if is_valid_position(end):
             result += [action]
     return result
-    
-    # if x == 0:
-    #     valid_actions = [action for action in valid_actions if (
-    #             action != Action.MOVE_DOWN and action != Action.MOVE_DOWN_LEFT and action != Action.MOVE_DOWN_RIGHT
-    #     )]
-    # elif x == 4:
-    #     valid_actions = [action for action in valid_actions if (
-    #             action != Action.MOVE_UP and action != Action.MOVE_UP_LEFT and action != Action.MOVE_UP_RIGHT
-    #     )]
-
-    # if y == 0:
-    #     valid_actions = [action for action in valid_actions if (
-    #             action != Action.MOVE_LEFT and action != Action.MOVE_DOWN_LEFT and action != Action.MOVE_UP_LEFT
-    #     )]
-    # elif y == 4:
-    #     valid_actions = [action for action in valid_actions if (
-    #             action != Action.MOVE_RIGHT and action != Action.MOVE_UP_RIGHT and action != Action.MOVE_DOWN_RIGHT
-    #     )]
-    # return valid_actions
 
 
 def is_valid_position(pos: tuple[int, int]) -> bool:
@@ -123,4 +92,3 @@ def get_player_position(board: list[list[int]], player_num: int) -> list[tuple[i
             if board[i][j] == player_num:
                 res.append((i, j))
     return res
-
