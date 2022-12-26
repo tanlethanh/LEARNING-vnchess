@@ -35,7 +35,7 @@ class MonteAgent():
             else:
                 return self.engine.best_action(simulations_number=500, c_param=self.remain_duration/self.duration, deep_threshold=20)
         if self.level == 'expert':
-            return self.engine.best_action(simulations_number=500, c_param=0.5, deep_threshold=np.random.randint(3,10))
+            return self.engine.best_action(simulations_number=100, c_param=0.2)
             if self.remain_duration/self.duration > 0.95:
                 # print("beginging")
                 return self.engine.best_action(simulations_number=50, c_param=0.2, deep_threshold=5)

@@ -62,12 +62,12 @@ class ChessVNState(AbstractGameState):
         # x_op = len(get_avail_valid_actions( self.board, 1))
         # o_op = len(get_avail_valid_actions( self.board,-1))
         value = (np.sum(np.array(self.board)))
-        if value > 0:
+        if value < 14:
             return 2
-        elif value == 0:
-            return 1
-        else:
+        elif value < -14:
             return 0
+        else:
+            return 1
         # if value == 16 or value == -16:
         #     return 1000
         # return value 

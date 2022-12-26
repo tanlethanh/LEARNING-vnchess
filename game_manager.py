@@ -272,8 +272,8 @@ def change_player(_cur_player):
 
 
 def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move):
-    duration_1 = 100.0
-    duration_2 = 100.0
+    duration_1 = 10000.0
+    duration_2 = 10000.0
     print("--------------------------- Game start ---------------------------\n")
     print(f"Active position: {get_active_position(prev_board, board, -cur_player)}")
 

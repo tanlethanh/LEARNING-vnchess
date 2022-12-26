@@ -5,7 +5,7 @@ from game_manager import *
 import time
 np.random.seed(int(time.time()))
 class MonteCarloTreeSearchNode():
-    def __init__(self, state,parent_action = None, parent = None):
+    def __init__(self, state, parent_action = None, parent = None):
         '''
         Params: state: monte_carlo_board_state
         parent: node
@@ -128,7 +128,7 @@ class ChessVNNode(MonteCarloTreeSearchNode):
     def is_terminal_node(self):
         return self.state.is_game_over()
     
-    def rollout(self, threshold = 100):
+    def rollout(self):
         '''
             make simulation through node with depth threshold
             params: threshold: int
@@ -150,9 +150,6 @@ class ChessVNNode(MonteCarloTreeSearchNode):
             _ganh += ganh * player
             _vay += vay * player
             _mo += mo * player
-            threshold -=1
-            if threshold < 0:
-                break
             # print("----"*20 )
             # print("Rolling: ", player)
             # print("Take Action: ", action)
@@ -166,7 +163,7 @@ class ChessVNNode(MonteCarloTreeSearchNode):
         # print("----"*20 )
         # time.sleep(100)
         return current_rollout_state.game_result, _ganh, _vay, _mo
-    
+
     # def backpropagate(self, reward, index):
     def backpropagate(self, reward):
         '''
