@@ -5,17 +5,17 @@ import numpy as np
 from game_manager import get_traps, get_actions_of_chessman, get_active_position, update_board
 from utils import blind_move
 
-BOARD_SIZE = 4
+BOARD_SIZE = 5
 
 
 class VnChessState:
 
-    def __init__(self, parent_state=None, state=None, player_num=1):
+    def __init__(self, prev_board=None, board=None, player_num=1):
         '''
         state: chess board
         '''
-        self.prev_board = parent_state
-        self.board = state
+        self.prev_board = prev_board
+        self.board = board
         self.player_num = player_num
 
     @property
@@ -36,10 +36,6 @@ class VnChessState:
         """
         Action result is tuple(start, end)
 
-        :param _prev_board:
-        :param _board:
-        :param _player_num:
-        :return:
         """
 
         all_actions: list[tuple[tuple[int, int]]] = []
@@ -52,27 +48,16 @@ class VnChessState:
         if not is_possibility_trap or len(all_actions) == 0:
             for i in range(BOARD_SIZE):
                 for j in range(BOARD_SIZE):
-                    if self.board[i][j] == self.prev_board:
+                    if self.board[i][j] == self.player_num:
                         actions = get_actions_of_chessman(self.board, (i, j))
                         all_actions += [((i, j), blind_move((i, j), action)) for action in actions]
 
         return all_actions
 
-    def take_action(_prev_board, _board, _player_num, _action):
-        # This method will change value in _board
-        _board = copy_board(_board)
-
-        start, end = _action
-        updated_board = update_board(_prev_board, copy_board(_board), start, end, _player_num)
-
-        return ChessVNState(_board, updated_board, _player_num)
-
     def move(self, action: tuple[tuple[int], tuple[int]]):
         # This method will change value in _board
         _board = copy.deepcopy(self.board)
-
         start, end = action
-
-        updated_board = update_board(self.prev_board, copy.deepcopy(_board), start, end, self.player_num)
-
+        updated_board = update_board(self.prev_board, copy.deepcopy(_board), start, end, self.player_num,
+                                     check_valid=False)
         return VnChessState(_board, updated_board, -self.player_num)

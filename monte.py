@@ -1,54 +1,8 @@
-# Python3 program to demonstrate
-# working of Alpha-Beta Pruning
-import builtins
 import time
 from collections import defaultdict
 import numpy as np
 
-from game_manager import get_active_position, get_traps, get_actions_of_chessman, copy_board, update_board
-from utils import blind_move
-
-
-def evaluation(node):
-    score = np.sum(node.board)
-    return score
-
-
-def get_all_actions(_prev_board, _board, _player_num):
-    """
-    Action result is tuple(start, end)
-
-    :param _prev_board:
-    :param _board:
-    :param _player_num:
-    :return:
-    """
-
-    all_actions: list[tuple[tuple[int, int]]] = []
-    active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player_num)
-
-    # Get all actions of chessman list pair (start, action)
-    if is_possibility_trap and active_position is not None:
-        all_actions = get_traps(_board, active_position, _player_num)
-
-    if not is_possibility_trap or len(all_actions) == 0:
-        for i in range(len(_board)):
-            for j in range(len(_board[0])):
-                if _board[i][j] == _player_num:
-                    actions = get_actions_of_chessman(_board, (i, j))
-                    all_actions += [((i, j), blind_move((i, j), action)) for action in actions]
-
-    return all_actions
-
-
-def take_action(_prev_board, _board, _player_num, _action):
-    # This method will change value in _board
-    _board = copy_board(_board)
-
-    start, end = _action
-    updated_board = update_board(_prev_board, copy_board(_board), start, end, _player_num)
-
-    return ChessVNState(_board, updated_board, -_player_num)
+from game_state import VnChessState
 
 
 class ChessVNMonteCarloTreeSearch(object):
@@ -167,7 +121,7 @@ class ChessVNNode(MonteCarloTreeSearchNode):
     @property
     def untried_actions(self):
         if self._untried_actions is None:
-            actions = self.state.get_legal_actions()
+            actions = self.state.get_all_legal_actions()
             np.random.shuffle(actions)
             self._untried_actions = actions
         return self._untried_actions
@@ -204,7 +158,7 @@ class ChessVNNode(MonteCarloTreeSearchNode):
         current_rollout_state = self.state
 
         while not (current_rollout_state.is_game_over()):
-            possible_moves = current_rollout_state.get_legal_actions()
+            possible_moves = current_rollout_state.get_all_legal_actions()
             player = current_rollout_state.player_num
             action = self.rollout_policy(possible_moves)
             current_rollout_state = current_rollout_state.move(action)
@@ -227,37 +181,6 @@ class ChessVNNode(MonteCarloTreeSearchNode):
             self.parent.backpropagate(reward)
 
 
-class ChessVNState:
-
-    def __init__(self, parent_state=None, state=None, player_num=1):
-        '''
-        state: chess board
-        '''
-        self.prev_board = parent_state
-        self.board = state
-        self.player_num = player_num
-
-    @property
-    def game_result(self) -> int:
-        value = (np.sum(np.array(self.board)))
-        if value > 0:
-            return 2
-        elif value == 0:
-            return 1
-        else:
-            return 0
-
-    def is_game_over(self) -> bool:
-        x = np.sum(np.array(self.board))
-        return x == 16 or x == -16
-
-    def get_legal_actions(self):
-        return get_all_actions(self.prev_board, self.board, self.player_num)
-
-    def move(self, action):
-        return take_action(self.prev_board, self.board, self.player_num, action)
-
-
 class MonteAgent:
 
     def __init__(self, prev_state, state, player, remain_move=None, remain_duration=None, level='medium'):
@@ -266,7 +189,7 @@ class MonteAgent:
         self.remain_move = remain_move
         self.remain_duration = remain_duration
 
-        self.initial_board_state = ChessVNState(parent_state=prev_state, state=state, player_num=player)
+        self.initial_board_state = VnChessState(prev_board=prev_state, board=state, player_num=player)
         self.root = ChessVNNode(state=self.initial_board_state)
         self.engine = ChessVNMonteCarloTreeSearch(self.root)
         self.duration = 100
@@ -286,7 +209,8 @@ class MonteAgent:
                 return self.engine.best_action(simulations_number=500, c_param=self.remain_duration / self.duration,
                                                deep_threshold=20)
         if self.level == 'expert':
-            return self.engine.best_action(simulations_number=500, c_param=0.2, deep_threshold=np.random.randint(50, 100))
+            return self.engine.best_action(simulations_number=500, c_param=0.2,
+                                           deep_threshold=np.random.randint(50, 100))
 
 
 def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
@@ -295,7 +219,7 @@ def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
     else:
         _remain_time = _remain_time_o
 
-    monte = MonteAgent(_prev_board, _board, _player, remain_duration=_remain_time, level='expert')
+    monte = MonteAgent(_prev_board, _board, _player, remain_duration=_remain_time, level='easy')
 
     best_child = monte.move()
     start, end = best_child.parent_action

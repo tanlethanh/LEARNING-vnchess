@@ -143,7 +143,7 @@ def surround(board, surrounded_teams, new_value):
     return board
 
 
-def update_board(_prev_board, _board, _start, _end, _player_num):
+def update_board(_prev_board, _board, _start, _end, _player_num, check_valid=True):
     """
     This method update board by moving from start to end location.
     Raise error if moving is not valid.
@@ -156,42 +156,45 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
     :param _start:
     :param _end:
     :param _player_num:
+    :param check_valid:
     :return:
     """
-    i, j = _start
-    if _board[i][j] != _player_num:
-        print(_board[i][j])
-        print(_player_num)
-        raise Exception("Start position is not valid")
+    if check_valid:
+        i, j = _start
+        if _board[i][j] != _player_num:
+            print(_board[i][j])
+            print(_player_num)
+            raise Exception("Start position is not valid")
 
-    active_position, is_possibility_trap = False, False
-    if _prev_board is not None:
-        active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player_num)
+        active_position, is_possibility_trap = False, False
+        if _prev_board is not None:
+            active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player_num)
 
-    # Get all actions of chessman list pair (start, action)
-    chessman_actions = []
-    if is_possibility_trap and active_position is not None:
-        chessman_actions = get_traps(_board, active_position, _player_num) #[(start, end)]
+        # Get all actions of chessman list pair (start, action)
+        chessman_actions = []
+        if is_possibility_trap and active_position is not None:
+            chessman_actions = get_traps(_board, active_position, _player_num)  # [(start, end)]
 
-    if not is_possibility_trap or len(chessman_actions) == 0:
-        # print("hh")
-        actions = get_actions_of_chessman(_board, _start)
-        chessman_actions = [(_start, blind_move(_start, action)) for action in actions]
+        if not is_possibility_trap or len(chessman_actions) == 0:
+            # print("hh")
+            actions = get_actions_of_chessman(_board, _start)
+            chessman_actions = [(_start, blind_move(_start, action)) for action in actions]
 
-    # Check the _end point is from valid action
-    is_valid = False
-    for s, e in chessman_actions:
-        if _start == s and _end == e:
-            is_valid = True
-            break
-    if not is_valid:
-        print(chessman_actions)
-        if is_possibility_trap:
-            print("trap")
-        else:
-            print("not trap")
-        raise Exception(f"Action is not valid: {_start} -> {_end}")
+        # Check the _end point is from valid action
+        is_valid = False
+        for s, e in chessman_actions:
+            if _start == s and _end == e:
+                is_valid = True
+                break
+        if not is_valid:
+            print(chessman_actions)
+            if is_possibility_trap:
+                print("trap")
+            else:
+                print("not trap")
+            raise Exception(f"Action is not valid: {_start} -> {_end}")
 
+    # Update board
     i, j = _end
     _board[i][j] = _player_num
 
@@ -204,13 +207,13 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
         i1, j1 = blind_move(_end, action)
         i2, j2 = blind_move(_end, action.get_opposite())
 
-        if(is_valid_position((i1,j1)) and is_valid_position((i2,j2))):
+        if (is_valid_position((i1, j1)) and is_valid_position((i2, j2))):
             if _board[i1][j1] == _board[i2][j2] == -_player_num:
                 # print(f"\tUpdate board: kill at {i1, j1} and {i2, j2}")
                 _board[i1][j1] = _player_num
                 _board[i2][j2] = _player_num
         # This blind move can go out of board
-        
+
     # cap nhat neu co vay
     surround_teams = get_surrounded_chesses(_board, _player_num)
     _board = surround(_board, surround_teams, _player_num)
