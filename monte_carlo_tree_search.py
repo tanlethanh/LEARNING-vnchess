@@ -3,7 +3,7 @@ from monte_nodes import *
 
 class ChessVNMonteCarloTreeSearch(object):
 
-    def __init__(self, node : ChessVNNode):
+    def __init__(self, node):
         '''
         params
         node: MonteTreeNode
@@ -26,15 +26,19 @@ class ChessVNMonteCarloTreeSearch(object):
             while time.time() <= end_time:
                 v = self._tree_policy()
                 reward = v.rollout(deep_threshold)
-                v.backpropagate(reward, v.index)
+                # v.backpropagate(reward, v.index)
+                v.backpropagate(reward)
+
         else:
             for _ in range(0, simulations_number):
                 v = self._tree_policy()
                 reward = v.rollout(deep_threshold)
-                v.backpropagate(reward, v.index)
+                v.backpropagate(reward)
+                # v.backpropagate(reward, v.index)
+
         return self.root.best_child(c_param=c_param)
 
-    def _tree_policy(self) -> ChessVNNode:
+    def _tree_policy(self):
         '''
         selects node to run rollout/playout for
         '''

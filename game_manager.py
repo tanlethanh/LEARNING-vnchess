@@ -5,6 +5,7 @@ from action import Action
 from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board, get_avail_half_actions
 import numpy as np
 from temp import test_case_steps
+import time
 
 
 def get_start():
@@ -43,6 +44,8 @@ def copy_board(_board: list[list[int]]):
 
 
 def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _player_num: int):
+    if _prev_board == None:
+        return None, False
     active_position = None
     is_possibility_trap = True
     for i in range(5):
@@ -269,27 +272,36 @@ def change_player(_cur_player):
 
 
 def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move):
+    duration_1 = 100.0
+    duration_2 = 100.0
     print("--------------------------- Game start ---------------------------\n")
     print(f"Active position: {get_active_position(prev_board, board, -cur_player)}")
 
     print("Previous board")
-    print_board(prev_board)
+    # print_board(prev_board)
 
     print("Current board")
     print_board(board)
 
-    while check_winner(board) == 0:
+    while check_winner(board) == 0 and duration_1 > 0 and duration_2 > 0:
 
         print(f"Player: {'X' if cur_player == 1 else 'O'}")
 
         if cur_player == 1:
+            start_time = time.time()
             start, end = _move1(copy_board(prev_board), copy_board(board), cur_player,
-                                _remain_time_x=1000, _remain_time_o=1000)
+                                _remain_time_x=duration_1, _remain_time_o=duration_2)
+            end_time = time.time()
+            duration_1 -= (end_time - start_time)
+            print("Time taked: {:3f}".format(end_time - start_time))
 
         elif cur_player == -1:
+            start_time = time.time()
             start, end = _move2(copy_board(prev_board), copy_board(board), cur_player,
-                                _remain_time_x=1000, _remain_time_o=1000)
-
+                                _remain_time_x=duration_1, _remain_time_o=duration_2)
+            end_time = time.time()
+            print("Time taked: {:3f}".format(end_time - start_time))
+            duration_2 -= (end_time - start_time)
         else:
             raise Exception(f"\tCurrent player is not valid {cur_player}")
         try:
@@ -307,7 +319,9 @@ def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_mov
 
         print_board(board)
         cur_player = change_player(cur_player)
-
+    if duration_1 <= 0 or duration_2 <= 0:
+        print("Time out, draw")
+        exit()
     winner = check_winner(board)
     winner = "X" if winner == 1 else ("O" if winner == -1 else "None")
     print(f"⭐ ⭐ ⭐ Winner {winner} ⭐ ⭐ ⭐")
