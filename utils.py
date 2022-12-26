@@ -76,7 +76,7 @@ def get_avail_actions(position):
             result.append(action)
     return result
 
-def get_avail_half_actions(position):
+def get_avail_half_actions(position) -> list[Action]:
     x, y = position
     index_sum = x + y
     if index_sum % 2 == 0:
@@ -123,3 +123,4 @@ def get_player_position(board: list[list[int]], player_num: int) -> list[tuple[i
             if board[i][j] == player_num:
                 res.append((i, j))
     return res
+

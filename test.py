@@ -5,13 +5,14 @@ import game_manager
 from monte_agent import *
 
 if __name__ == "__main__":
+    prev_board = None
     board = game_manager.get_init_board()
     prev_board = None
     human = 1
     bot = -1
     turn = human
-    duration_1 = 50
-    duration_2 = 50
+    duration_1 = 100.
+    duration_2 = 100.
     move = 50
     while True:
         
@@ -20,7 +21,7 @@ if __name__ == "__main__":
         time.sleep(0.5)
         if turn == human:
             time_start = time.time()
-            monte = MonteAgent(board,human,remain_duration=duration_1, level='expert')
+            monte = MonteAgent(prev_board, board,human,remain_duration=duration_1, level='easy')
             best_child = monte.move()
             best_move = best_child.parent_action
             start = best_move['pos']
@@ -34,7 +35,7 @@ if __name__ == "__main__":
             duration_1 -= (time_end - time_start)
         else:
             time_start = time.time()
-            monte = MonteAgent(board,bot, remain_duration=duration_2,level='easy')
+            monte = MonteAgent(prev_board, board,bot, remain_duration=duration_2,level='expert')
             best_child = monte.move()
             best_move = best_child.parent_action
             start = best_move['pos']
@@ -46,7 +47,7 @@ if __name__ == "__main__":
             print("O start:", start)
             print("O end:", end)
             duration_2 -= (time_end - time_start)
-        cp_board = game_manager.copy_board(board)
+        prev_board = game_manager.copy_board(board)
         board = game_manager.update_board(prev_board, board, start, end, turn)
         if duration_1 < 0:
             print('player 1 lose, timeout')
@@ -66,7 +67,6 @@ if __name__ == "__main__":
             print('player 2 remain duration', duration_2)
 
             break
-        prev_board = cp_board
         turn *= -1
         
     # player_num = 1

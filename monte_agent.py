@@ -2,6 +2,7 @@ from monte_carlo_tree_search import ChessVNMonteCarloTreeSearch
 from monte_nodes import ChessVNNode
 from monte_chess_state import ChessVNState
 from game_manager import *
+from monte_utils import *
 import numpy as np
 
 state = [
@@ -13,15 +14,16 @@ state = [
     ]
 
 class MonteAgent():
-    def __init__(self, state, player, remain_move = None, remain_duration = None, level= 'easy'):
+    def __init__(self, prev_state, state, player, remain_move = None, remain_duration = None, level= 'medium'):
         np.random.seed(1234)
         self.level = level
         self.remain_move = remain_move
         self.remain_duration = remain_duration
-        self.initial_board_state = ChessVNState(state=state, next_to_move=player)
+        # parent_move = get_last_move(prev_state, state, -player)
+        self.initial_board_state = ChessVNState(parent_state = prev_state, state = state, next_to_move=player)
         self.root = ChessVNNode(state=self.initial_board_state)
         self.engine = ChessVNMonteCarloTreeSearch(self.root)
-        self.duration = 50
+        self.duration = 100
     def move(self):
         if self.level == 'easy':
             return self.engine.best_action(simulations_number=20, c_param=np.random.randint(0, 20)/5, deep_threshold=np.random.randint(1,2))
@@ -33,11 +35,19 @@ class MonteAgent():
             else:
                 return self.engine.best_action(simulations_number=500, c_param=self.remain_duration/self.duration, deep_threshold=20)
         if self.level == 'expert':
-            if self.remain_duration/self.duration > 0.8:
-                return self.engine.best_action(simulations_number=300, c_param=2., deep_threshold=3)
+            return self.engine.best_action(simulations_number=500, c_param=0.5, deep_threshold=np.random.randint(3,10))
+            if self.remain_duration/self.duration > 0.95:
+                # print("beginging")
+                return self.engine.best_action(simulations_number=50, c_param=0.2, deep_threshold=5)
+            elif self.remain_duration/self.duration > 0.8:
+                # print("beginging")
+                return self.engine.best_action(simulations_number=100, c_param=0.15, deep_threshold=10)
             elif self.remain_duration/self.duration > 0.7:
-                return self.engine.best_action(simulations_number=300, c_param=3., deep_threshold=3)
+                # print("sau begin")
+                return self.engine.best_action(simulations_number=100, c_param=0.1, deep_threshold=5)
             elif self.remain_duration/self.duration > 0.4:
-                return self.engine.best_action(simulations_number=300, c_param=2., deep_threshold=4)
+                # print("sap end")
+                return self.engine.best_action(simulations_number=300, c_param=0.5, deep_threshold=3)
             else:
+                # print("endgame")
                 return self.engine.best_action(simulations_number=300, c_param=0, deep_threshold=3)

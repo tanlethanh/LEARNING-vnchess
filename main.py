@@ -11,7 +11,7 @@ if __name__ == "__main__":
     player_num = 1
 
     prev_board = game_manager.copy_board(board)
-
+    prev_board = None
     test_mode = "None"
 
     if len(sys.argv) > 1:

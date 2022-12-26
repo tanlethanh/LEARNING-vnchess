@@ -27,8 +27,8 @@ class Node:
         self.parent = _parent
         self.action = _action
         self.children: list[Node] = []
-        self.prev_board: list[[]] = _prev_board
-        self.board: list[[]] = _board
+        self.prev_board: list[list] = _prev_board
+        self.board: list[list] = _board
         self.player_num = _player_num
         self.value = None
 
