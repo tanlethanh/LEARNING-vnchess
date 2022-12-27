@@ -1,12 +1,12 @@
 import sys
 import time
-
+from human import *
 import game_manager
 import minimax
 import monte
 import random_move
 import temp
-
+from mtcs_ab import move as montemove
 if __name__ == "__main__":
     board = game_manager.get_init_board()
     player_num = 1
@@ -33,6 +33,8 @@ if __name__ == "__main__":
         game_manager.play_game(prev_board, board, player_num, _move1=minimax.move, _move2=monte.move)
     elif test_mode == "monte_random":
         game_manager.play_game(prev_board, board, player_num, _move1=monte.move, _move2=random_move.move)
+    elif test_mode == "pve":
+        game_manager.play_game(prev_board, board, player_num, _move1=minimax.move, _move2 = humanmove)
     elif test_mode == "minimax_minimax":
         for i in range(num_round):
             prev_board = None

@@ -174,9 +174,8 @@ class ChessVNNode(MonteCarloTreeSearchNode):
 
     @property
     def q(self):
-        win_index = 1 + self.state.player_num
-        win = self._results[win_index]
-        loss = self._results[2 - win_index]
+        win = self._results[self.state.player_num]
+        loss = self._results[-self.state.player_num]
         return win - loss
 
     @property
@@ -219,8 +218,7 @@ class ChessVNNode(MonteCarloTreeSearchNode):
         params:
             reward: game_result
         '''
-        game_result = reward
-        self._results[game_result] += 1.
+        self._results[reward] += 1.
         self._number_of_visits += 1.
         if self.parent is not None:
             assert (isinstance(self.parent, ChessVNNode))
@@ -240,10 +238,10 @@ class ChessVNState:
     @property
     def game_result(self) -> int:
         value = (np.sum(np.array(self.board)))
-        if value > 0:
-            return 2
-        elif value == 0:
+        if value == 16:
             return 1
+        elif value == -16:
+            return -1
         else:
             return 0
 
@@ -260,9 +258,8 @@ class ChessVNState:
 
 class MonteAgent:
 
-    def __init__(self, prev_state, state, player, remain_move=None, remain_duration=None, level='medium'):
+    def __init__(self, prev_state, state, player, remain_move=None, remain_duration=None):
         np.random.seed(1234)
-        self.level = level
         self.remain_move = remain_move
         self.remain_duration = remain_duration
 
@@ -272,21 +269,7 @@ class MonteAgent:
         self.duration = 100
 
     def move(self):
-        if self.level == 'easy':
-            return self.engine.best_action(simulations_number=20, c_param=np.random.randint(0, 20) / 5,
-                                           deep_threshold=np.random.randint(1, 2))
-        if self.level == 'medium':
-            if self.remain_duration / self.duration > 0.8:
-                return self.engine.best_action(simulations_number=50, c_param=self.remain_duration / self.duration,
-                                               deep_threshold=5)
-            elif self.remain_duration / self.duration > 0.5:
-                return self.engine.best_action(simulations_number=100, c_param=self.remain_duration / self.duration,
-                                               deep_threshold=10)
-            else:
-                return self.engine.best_action(simulations_number=500, c_param=self.remain_duration / self.duration,
-                                               deep_threshold=20)
-        if self.level == 'expert':
-            return self.engine.best_action(simulations_number=500, c_param=0.2, deep_threshold=np.random.randint(50, 100))
+        return self.engine.best_action(simulations_number=500, c_param=0.2, deep_threshold=10)
 
 
 def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
@@ -295,7 +278,7 @@ def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
     else:
         _remain_time = _remain_time_o
 
-    monte = MonteAgent(_prev_board, _board, _player, remain_duration=_remain_time, level='expert')
+    monte = MonteAgent(_prev_board, _board, _player, remain_duration=_remain_time)
 
     best_child = monte.move()
     start, end = best_child.parent_action

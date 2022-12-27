@@ -60,11 +60,11 @@ def get_all_actions(_prev_board, _board, _player_num):
     """
 
     all_actions: list[tuple[tuple[int, int]]] = []
-    active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player_num)
+    active_position, is_possibility_trap, prev_position = get_active_position(_prev_board, _board, -_player_num)
 
     # Get all actions of chessman list pair (start, action)
-    if is_possibility_trap and active_position is not None:
-        all_actions = get_traps(_board, active_position, _player_num)
+    if is_possibility_trap and active_position is not None and prev_position:
+        all_actions = get_traps(_board, active_position, _player_num, prev_position)
 
     if not is_possibility_trap or len(all_actions) == 0:
         for i in range(len(_board)):
@@ -88,7 +88,7 @@ def take_action(_prev_board, _board, _player_num, _action):
     return Node(_board, updated_board, -_player_num)
 
 
-def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3):
+def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=5):
     if depth == max_depth:
         return node.get_value()
 
@@ -129,7 +129,7 @@ def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
     cur_node = Node(_prev_board, _board, _player)
 
     is_max = False if _player == -1 else True
-    max_value = minimax(node=cur_node, is_max_player=is_max, alpha=MIN, beta=MAX, depth=0, max_depth=3)
+    max_value = minimax(node=cur_node, is_max_player=is_max, alpha=MIN, beta=MAX, depth=0, max_depth=5)
 
     # print(max_value)
     # print([child.get_value() for child in cur_node.children])
@@ -137,6 +137,7 @@ def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
         if max_value == child.get_value():
             start, end = child.action
             print(f"\t MINIMAX move: {start} -> {end}")
+            print((start, end))
             return child.action
 
     return None

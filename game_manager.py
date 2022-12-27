@@ -2,7 +2,7 @@ import sys
 import traceback
 
 from action import Action
-from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board
+from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board, get_avail_half_actions
 from temp import test_case_steps
 import time
 
@@ -44,7 +44,7 @@ def copy_board(_board: list[list[int]]):
 
 def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _player_num: int):
     if _prev_board == None:
-        return None, False
+        return None, False, None
     active_position = None
     is_possibility_trap = True
     for i in range(5):
@@ -54,30 +54,38 @@ def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _
                 is_possibility_trap = False
             if _prev_board[i][j] == 0 and _board[i][j] == _player_num:
                 active_position = i, j
+            if _prev_board[i][j] == _player_num and _board[i][j]==0:
+                prev_position = i, j
 
-    return active_position, is_possibility_trap
+    return active_position, is_possibility_trap, prev_position
 
 
-def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int]]]:
+def get_traps(board, active_pos, player_num, prev_position) -> list[tuple[tuple[int, int]]]:
     # TODO: Exact trap from last move of opponent
     # Result shape [(start_pos, action)]
     traps = []
-    for action in get_avail_actions(active_pos):
-        adjacent_pos = blind_move(active_pos, action)
-        adjacent_num = get_at(board, adjacent_pos)
+    for action in get_avail_half_actions(prev_position):
+        assert(isinstance(action, Action))
+        pos_1, pos_2 = blind_move(prev_position, action), blind_move(prev_position, action.get_opposite())
+        num_1, num_2 = get_at(board, pos_1), get_at(board, pos_2)
+        if num_1 == num_2 == -player_num:
+            for sub_action in get_avail_actions(prev_position):
+                adjacent_pos = blind_move(prev_position, sub_action)
+                adjacent_num = get_at(board, adjacent_pos)
+                if adjacent_num == player_num:
+                    traps += [(adjacent_pos, prev_position)]
+        # if adjacent_num == 0:
+        #     starts = []
+        #     next_pos = blind_move(adjacent_pos, action)
+        #     if (get_at(board, next_pos) == -player_num):
 
-        if adjacent_num == 0:
-            starts = []
-            next_pos = blind_move(adjacent_pos, action)
-            if (get_at(board, next_pos) == -player_num):
+        #         for sub_action in get_avail_actions(adjacent_pos):
+        #             player_pos = blind_move(adjacent_pos, sub_action)
+        #             if (get_at(board, player_pos)) == player_num:
+        #                 starts.append(player_pos)
 
-                for sub_action in get_avail_actions(adjacent_pos):
-                    player_pos = blind_move(adjacent_pos, sub_action)
-                    if (get_at(board, player_pos)) == player_num:
-                        starts.append(player_pos)
-
-            if len(starts) > 0:
-                traps += [(start, adjacent_pos) for start in starts]
+        #     if len(starts) > 0:
+        #         traps += [(start, adjacent_pos) for start in starts]
 
     return traps
 
@@ -166,12 +174,12 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
 
     active_position, is_possibility_trap = False, False
     if _prev_board is not None:
-        active_position, is_possibility_trap = get_active_position(_prev_board, _board, -_player_num)
+        active_position, is_possibility_trap, prev_position = get_active_position(_prev_board, _board, -_player_num)
 
     # Get all actions of chessman list pair (start, action)
     chessman_actions = []
     if is_possibility_trap and active_position is not None:
-        chessman_actions = get_traps(_board, active_position, _player_num) #[(start, end)]
+        chessman_actions = get_traps(_board, active_position, _player_num, prev_position) #[(start, end)]
 
     if not is_possibility_trap or len(chessman_actions) == 0:
         # print("hh")
@@ -200,7 +208,7 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
 
     # Ganh truoc, vay sau <- vi co truong hop co ca ganh va vay
     # cap nhat neu co ganh
-    for action in Action.get_half_actions():
+    for action in get_avail_half_actions(_end):
         i1, j1 = blind_move(_end, action)
         i2, j2 = blind_move(_end, action.get_opposite())
 
@@ -270,7 +278,7 @@ def change_player(_cur_player):
     return -_cur_player
 
 
-def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move):
+def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move, print_out = True):
     duration_1 = 10000.0
     duration_2 = 10000.0
     print("--------------------------- Game start ---------------------------\n")
