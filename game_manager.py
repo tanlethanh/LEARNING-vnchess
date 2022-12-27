@@ -151,7 +151,7 @@ def surround(board, surrounded_teams, new_value):
     return board
 
 
-def update_board(_prev_board, _board, _start, _end, _player_num):
+def update_board(_prev_board, _board, _start, _end, _player_num, check_valid=True):
     """
     This method update board by moving from start to end location.
     Raise error if moving is not valid.
@@ -164,6 +164,7 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
     :param _start:
     :param _end:
     :param _player_num:
+    :param check_valid:
     :return:
     """
     i, j = _start
@@ -212,13 +213,13 @@ def update_board(_prev_board, _board, _start, _end, _player_num):
         i1, j1 = blind_move(_end, action)
         i2, j2 = blind_move(_end, action.get_opposite())
 
-        if(is_valid_position((i1,j1)) and is_valid_position((i2,j2))):
+        if (is_valid_position((i1, j1)) and is_valid_position((i2, j2))):
             if _board[i1][j1] == _board[i2][j2] == -_player_num:
                 # print(f"\tUpdate board: kill at {i1, j1} and {i2, j2}")
                 _board[i1][j1] = _player_num
                 _board[i2][j2] = _player_num
         # This blind move can go out of board
-        
+
     # cap nhat neu co vay
     surround_teams = get_surrounded_chesses(_board, _player_num)
     _board = surround(_board, surround_teams, _player_num)
