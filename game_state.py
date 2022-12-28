@@ -32,14 +32,19 @@ class VnChessState:
         x = np.sum(np.array(self.board))
         return x == 16 or x == -16
 
-    def get_all_legal_actions(self):
+    def get_all_legal_actions(self, with_count=False):
         """
         Action result is tuple(start, end)
 
         """
 
         all_actions: list[tuple[tuple[int, int]]] = []
-        active_position, is_possibility_trap = get_active_position(self.prev_board, self.board, -self.player_num)
+
+        if with_count:
+            active_position, is_possibility_trap, count_board = get_active_position(self.prev_board, self.board,
+                                                                                    -self.player_num, with_count)
+        else:
+            active_position, is_possibility_trap = get_active_position(self.prev_board, self.board, -self.player_num)
 
         # Get all actions of chessman list pair (start, action)
         if is_possibility_trap and active_position is not None:
@@ -51,7 +56,8 @@ class VnChessState:
                     if self.board[i][j] == self.player_num:
                         actions = get_actions_of_chessman(self.board, (i, j))
                         all_actions += [((i, j), blind_move((i, j), action)) for action in actions]
-
+        if with_count:
+            return all_actions, count_board
         return all_actions
 
     def move(self, action: tuple[tuple[int], tuple[int]]):
