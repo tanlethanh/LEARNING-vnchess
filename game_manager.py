@@ -1,5 +1,8 @@
+import os
 import sys
 import traceback
+
+import numpy as np
 
 from action import Action
 from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board, get_avail_half_actions
@@ -42,11 +45,28 @@ def copy_board(_board: list[list[int]]):
     return copied_board
 
 
-def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _player_num: int):
+def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _player_num: int,
+                        with_count_board=False):
+    """
+
+    :param _prev_board:
+    :param _board:
+    :param _player_num: of the player take last move
+    :param with_count_board:
+    :return:
+    """
+
     if _prev_board == None:
-        return None, False, None
+        if with_count_board:
+            return None, False, np.sum(np.array(_board))
+        else:
+            return None, False
+
     active_position = None
     is_possibility_trap = True
+
+    count_board = 0
+
     for i in range(5):
         for j in range(5):
             # Nuoc di an quan khong phai la mo
@@ -56,8 +76,12 @@ def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _
                 active_position = i, j
             if _prev_board[i][j] == _player_num and _board[i][j]==0:
                 prev_position = i, j
+            count_board += _board[i][j]
 
-    return active_position, is_possibility_trap, prev_position
+    if with_count_board:
+        return active_position, is_possibility_trap, count_board
+
+    return active_position, is_possibility_trap
 
 
 def get_traps(board, active_pos, player_num, prev_position) -> list[tuple[tuple[int, int]]]:
@@ -278,10 +302,22 @@ def input_move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
 def change_player(_cur_player):
     return -_cur_player
 
+def summary_after_round(board):
+    count_x = 0
+    count_o = 0
+    for row in board:
+        for ele in row:
+            if ele == 1:
+                count_x += 1
+            elif ele == -1:
+                count_o += 1
 
-def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move, print_out = True):
-    duration_1 = 10000.0
-    duration_2 = 10000.0
+    return count_x, count_o
+
+
+def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_move, print_out=True):
+    duration_1 = 1000000000000.0
+    duration_2 = 1000000000000.0
     print("--------------------------- Game start ---------------------------\n")
     print(f"Active position: {get_active_position(prev_board, board, -cur_player)}")
 
@@ -291,28 +327,50 @@ def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_mov
     print("Current board")
     print_board(board)
 
+    # count round
+    x_turn = 0
+    o_turn = 0
+    x_time = 0
+    o_time = 0
+
     while check_winner(board) == 0 and duration_1 > 0 and duration_2 > 0:
 
         if print_out:
             print(f"Player: {'X' if cur_player == 1 else 'O'}")
 
         if cur_player == 1:
+            x_turn += 1
             start_time = time.time()
             start, end = _move1(copy_board(prev_board), copy_board(board), cur_player,
                                 _remain_time_x=duration_1, _remain_time_o=duration_2)
             end_time = time.time()
-            duration_1 -= (end_time - start_time)
+
+            exec_time = end_time - start_time
+            duration_1 -= exec_time
+            x_time += exec_time
+
             if print_out:
                 print("Time taked: {:3f}".format(end_time - start_time))
 
+            if exec_time >= 3:
+                print(f"X player exec time exceed 3s | execution time = {exec_time}")
+
         elif cur_player == -1:
+            o_turn += 1
             start_time = time.time()
             start, end = _move2(copy_board(prev_board), copy_board(board), cur_player,
                                 _remain_time_x=duration_1, _remain_time_o=duration_2)
             end_time = time.time()
             if print_out:
                 print("Time taked: {:3f}".format(end_time - start_time))
-            duration_2 -= (end_time - start_time)
+            exec_time = (end_time - start_time)
+
+            duration_2 -= exec_time
+            o_time += exec_time
+
+            if exec_time >= 3:
+                print(f"O player exec time exceed 3s | execution time = {exec_time}")
+
         else:
             raise Exception(f"\tCurrent player is not valid {cur_player}")
         try:
@@ -328,15 +386,27 @@ def play_game(prev_board, board, cur_player, _move1=input_move, _move2=input_mov
             print(f"Play again {cur_player}\n")
             continue
 
-        if print_out:
+        x_chessman, o_chessman = summary_after_round(board)
+
+        if x_chessman >= 14:
             print_board(board)
+
+        # time.sleep(1)
+        # os.system('cls')
+        # print_board(board)
+        print(f"\tTotal in board: {x_chessman - o_chessman}\t X: {x_chessman}\t O: {o_chessman}")
         cur_player = change_player(cur_player)
+
     if duration_1 <= 0 or duration_2 <= 0:
         print("Time out, draw")
         exit()
     winner = check_winner(board)
     winner = "X" if winner == 1 else ("O" if winner == -1 else "None")
-    print(f"⭐ ⭐ ⭐ Winner {winner} ⭐ ⭐ ⭐")
-    print("\n--------------------------- Game stop ---------------------------")
+    print(f"\n\n⭐ ⭐ ⭐ Winner {winner} ⭐ ⭐ ⭐")
+    print(f"X turn: {x_turn}")
+    print(f"X time: {x_time}")
+    print(f"O turn: {o_turn}")
+    print(f"O time: {o_time}")
+    print("\n--------------------------- Game stop ---------------------------\n\n")
 
     return winner
