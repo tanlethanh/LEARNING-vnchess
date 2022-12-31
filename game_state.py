@@ -2,8 +2,7 @@ import copy
 
 import numpy as np
 
-from game_manager import get_traps, get_actions_of_chessman, get_active_position, update_board
-from utils import blind_move
+from utils import get_traps, get_actions_of_chessman, get_active_position, update_board, blind_move
 
 BOARD_SIZE = 5
 

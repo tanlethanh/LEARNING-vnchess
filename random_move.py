@@ -3,8 +3,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from game_manager import get_active_position, get_traps, get_actions_of_chessman
-from utils import blind_move
+from utils import get_active_position, get_traps, get_actions_of_chessman, blind_move
 
 
 def get_all_actions(_prev_board, _board, _player_num) -> list[tuple[tuple[int, int]]]:

@@ -1,14 +1,11 @@
 import copy
 import sys
-import time
 
 import game_manager
-import minimax
-import monte
+from mcts import monte
 import random_move
-import temp
-import minimax_agent
-import minimax_opt
+import testcase
+from minimax import minimax_opt, minimax
 
 if __name__ == "__main__":
     board = game_manager.get_init_board()
@@ -40,7 +37,7 @@ if __name__ == "__main__":
         prev_board = None
 
         if use_spec_board:
-            board = copy.deepcopy(temp.test_board_3)
+            board = copy.deepcopy(testcase.test_board_3)
         else:
             board = game_manager.get_init_board()
 
@@ -52,25 +49,21 @@ if __name__ == "__main__":
             winner = game_manager.play_game(prev_board, board, player_num, _move1=monte.move, _move2=random_move.move)
         elif test_mode == "minimax_minimax":
             winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax_opt.move,
-                                            _move2=minimax.move_depth_3, print_out=False)
-
-        elif test_mode == "minimax_all":
-            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax_agent.move_all,
-                                            _move2=minimax.move_depth_4)
+                                            _move2=minimax.move_depth_5, print_out=False)
         elif test_mode == "minimax_opt":
-            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax_opt.move,
-                                            _move2=minimax.move_depth_5,
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_depth_5,
+                                            _move2=minimax_opt.move,
                                             print_out=False)
-
         elif test_mode == "minimax_same":
             winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_depth_3,
                                             _move2=minimax.move_depth_3,
                                             print_out=False)
-
         elif test_mode == "spec":
-            board = temp.test_board
-            prev_board = game_manager.copy_board(temp.test_board)
+            board = testcase.test_board
+            prev_board = game_manager.copy_board(testcase.test_board)
             winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move)
+        else:
+            sys.exit(-1)
 
         if winner == "X":
             x_win += 1
