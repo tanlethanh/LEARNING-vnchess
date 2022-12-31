@@ -1,7 +1,6 @@
 import builtins
 import copy
 from enum import Enum
-import numpy as np
 
 BOARD_SIZE = 5
 # Initial values of Alpha and Beta
@@ -382,7 +381,7 @@ def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3, count_no
             # print(f"\t\tNear priority handle at depth: {depth}, best: {best}")
 
 
-    np.random.shuffle(list_action)
+    # np.random.shuffle(list_action)
 
     for action in list_action:
         child = node.move(action)
@@ -420,7 +419,7 @@ def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
     cur_node = Node(_prev_board, _board, _player)
 
     is_max = False if _player == -1 else True
-    max_value, _ = minimax(node=cur_node, is_max_player=is_max, alpha=MIN, beta=MAX, depth=0, max_depth=5)
+    max_value, _ = minimax(node=cur_node, is_max_player=is_max, alpha=MIN, beta=MAX, depth=0, max_depth=3)
 
     for child in cur_node.children:
         if max_value == child.get_value():
@@ -428,7 +427,7 @@ def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
             # if np.sum(np.array(_board)) * _player >= 14:
             #     print("DEBUG")
             # print(f"\t MINIMAX move: {start} -> {end}")
-            print(f"\t\t{'X' if _player == 1 else 'O'} choose: {max_value}")
+            # print(f"\t\t{'X' if _player == 1 else 'O'} choose: {max_value}")
             return child.action
 
     # print("OPTIMAL MINIMAX")

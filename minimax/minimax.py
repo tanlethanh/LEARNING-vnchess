@@ -50,6 +50,7 @@ def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3, count_no
     best, choose = (MIN, builtins.max) if is_max_player else (MAX, builtins.min)
 
     list_action = node.get_all_legal_actions()
+
     np.random.shuffle(list_action)
 
     for action in list_action:
@@ -86,6 +87,7 @@ def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
         if max_value == child.get_value():
             start, end = child.action
             # print(f"\t MINIMAX move: {start} -> {end}")
+            print(f"\t\t{'X' if _player == 1 else 'O'} choose: {max_value}")
             return child.action
 
     return None
@@ -101,6 +103,7 @@ def move_depth_3(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
         if max_value == child.get_value():
             start, end = child.action
             # print(f"\t MINIMAX move: {start} -> {end}")
+            print(f"\t\t{'X' if _player == 1 else 'O'} choose: {max_value}")
             return child.action
 
     return None
@@ -116,6 +119,7 @@ def move_depth_4(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
         if max_value == child.get_value():
             start, end = child.action
             # print(f"\t MINIMAX move: {start} -> {end}")
+            print(f"\t\t{'X' if _player == 1 else 'O'} choose: {max_value}")
             return child.action
 
     return None
@@ -131,6 +135,23 @@ def move_depth_5(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
         if max_value == child.get_value():
             start, end = child.action
             # print(f"\t MINIMAX move: {start} -> {end}")
+            print(f"\t\t{'X' if _player == 1 else 'O'} choose: {max_value}")
+            return child.action
+
+    return None
+
+
+def move_depth_6(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+    cur_node = Node(_prev_board, _board, _player)
+
+    is_max = False if _player == -1 else True
+    max_value, _ = minimax(node=cur_node, is_max_player=is_max, alpha=MIN, beta=MAX, depth=0, max_depth=6)
+
+    for child in cur_node.children:
+        if max_value == child.get_value():
+            start, end = child.action
+            # print(f"\t MINIMAX move: {start} -> {end}")
+            print(f"\t\t{'X' if _player == 1 else 'O'} choose: {max_value}")
             return child.action
 
     return None

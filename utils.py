@@ -2,8 +2,9 @@ from action import Action
 import numpy as np
 
 
-def print_board(_board):
+def print_board(_board, _prefix=""):
     for i in range(len(_board)).__reversed__():
+        print(_prefix, end="")
         for j in range(len(_board[0])):
             if _board[i][j] == 1:
                 print("X", end="\t")
