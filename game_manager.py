@@ -5,7 +5,7 @@ import traceback
 import numpy as np
 
 from action import Action
-from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board
+from utils import blind_move, get_at, get_avail_actions, is_valid_position, print_board, get_avail_half_actions
 from temp import test_case_steps
 import time
 
@@ -72,7 +72,7 @@ def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _
             # Nuoc di an quan khong phai la mo
             if _prev_board[i][j] == -_player_num and _board[i][j] == _player_num:
                 is_possibility_trap = False
-            if _prev_board[i][j] == 0 and _board[i][j] == _player_num:
+            if _prev_board[i][j] == _player_num and _board[i][j] == 0:
                 active_position = i, j
 
             count_board += _board[i][j]
@@ -86,23 +86,36 @@ def get_active_position(_prev_board: list[list[int]], _board: list[list[int]], _
 def get_traps(board, active_pos, player_num) -> list[tuple[tuple[int, int]]]:
     # TODO: Exact trap from last move of opponent
     # Result shape [(start_pos, action)]
+
     traps = []
-    for action in get_avail_actions(active_pos):
-        adjacent_pos = blind_move(active_pos, action)
-        adjacent_num = get_at(board, adjacent_pos)
+    for action in get_avail_half_actions(active_pos):
+        assert (isinstance(action, Action))
+        pos_1, pos_2 = blind_move(active_pos, action), blind_move(active_pos, action.get_opposite())
+        num_1, num_2 = get_at(board, pos_1), get_at(board, pos_2)
+        if num_1 == num_2 == -player_num:
+            for sub_action in get_avail_actions(active_pos):
+                adjacent_pos = blind_move(active_pos, sub_action)
+                adjacent_num = get_at(board, adjacent_pos)
+                if adjacent_num == player_num:
+                    traps += [(adjacent_pos, active_pos)]
 
-        if adjacent_num == 0:
-            starts = []
-            next_pos = blind_move(adjacent_pos, action)
-            if (get_at(board, next_pos) == -player_num):
-
-                for sub_action in get_avail_actions(adjacent_pos):
-                    player_pos = blind_move(adjacent_pos, sub_action)
-                    if (get_at(board, player_pos)) == player_num:
-                        starts.append(player_pos)
-
-            if len(starts) > 0:
-                traps += [(start, adjacent_pos) for start in starts]
+    # traps = []
+    # for action in get_avail_actions(active_pos):
+    #     adjacent_pos = blind_move(active_pos, action)
+    #     adjacent_num = get_at(board, adjacent_pos)
+    #
+    #     if adjacent_num == 0:
+    #         starts = []
+    #         next_pos = blind_move(adjacent_pos, action)
+    #         if (get_at(board, next_pos) == -player_num):
+    #
+    #             for sub_action in get_avail_actions(adjacent_pos):
+    #                 player_pos = blind_move(adjacent_pos, sub_action)
+    #                 if (get_at(board, player_pos)) == player_num:
+    #                     starts.append(player_pos)
+    #
+    #         if len(starts) > 0:
+    #             traps += [(start, adjacent_pos) for start in starts]
 
     return traps
 
