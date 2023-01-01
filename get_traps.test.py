@@ -1,5 +1,4 @@
-from game_manager import get_traps, copy_board
-from utils import print_board
+from utils import print_board, get_traps, copy_board
 
 
 def trap_points(traps):

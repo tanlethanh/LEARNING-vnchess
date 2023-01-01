@@ -1,28 +1,83 @@
+import copy
 import sys
-import time
 
 import game_manager
-import minimax
+from mcts import monte
 import random_move
-import temp
-from monte_carlo_move import move as montemove
+import testcase
+from minimax import minimax_opt, minimax
+
 if __name__ == "__main__":
     board = game_manager.get_init_board()
     player_num = 1
 
-    prev_board = game_manager.copy_board(board)
     prev_board = None
     test_mode = "None"
 
     if len(sys.argv) > 1:
         test_mode = sys.argv[1]
 
+    try:
+        num_round = int(sys.argv[2])
+    except:
+        num_round = 1
+
+    try:
+        use_spec_board = bool(sys.argv[3])
+    except:
+        use_spec_board = False
+
+
+    x_win = 0
+    o_win = 0
+
     print(f"Test mode: {test_mode}")
-    if test_mode == "random":
-        game_manager.play_game(prev_board, board, player_num, _move1=minimax.move, _move2=random_move.move)
-    elif test_mode == "spec":
-        board = temp.test_board
-        prev_board = game_manager.copy_board(temp.test_board)
-        game_manager.play_game(prev_board, board, player_num, _move1=minimax.move, _move2=montemove)
-    else:
-        game_manager.play_game(prev_board, board, player_num, _move1=minimax.move,  _move2=montemove)
+
+    for i in range(num_round):
+        prev_board = None
+
+        if use_spec_board:
+            board = copy.deepcopy(testcase.test_board_3)
+        else:
+            board = game_manager.get_init_board()
+
+        if test_mode == "minimax_random":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move, _move2=random_move.move)
+        elif test_mode == "minimax_monte":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move, _move2=monte.move)
+        elif test_mode == "monte_random":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=monte.move, _move2=random_move.move)
+        elif test_mode == "mm6_mm5":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_6,
+                                            _move2=minimax.move_5, print_out=False)
+        elif test_mode == "mm5_mm5":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_5,
+                                            _move2=minimax.move_5, print_out=False)
+        elif test_mode == "mm5_mmo6":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_5,
+                                            _move2=minimax_opt.move_6,
+                                            print_out=False)
+        elif test_mode == "mm5_mmo5":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_5,
+                                            _move2=minimax_opt.move_5,
+                                            print_out=False)
+        elif test_mode == "mmo5_mm5":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax_opt.move_5,
+                                            _move2=minimax.move_5,
+                                            print_out=False)
+        elif test_mode == "spec":
+            board = testcase.test_board
+            prev_board = game_manager.copy_board(testcase.test_board)
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move)
+        else:
+            sys.exit(-1)
+
+        if winner == "X":
+            x_win += 1
+        elif winner == "O":
+            o_win += 1
+        print("\n---------------- Summary ----------------\n\n\n")
+        print(f"Test mode: {test_mode}")
+        print(f"Number of round: {num_round}")
+        print(f"X win: {x_win}")
+        print(f"O win: {o_win}")
