@@ -47,16 +47,23 @@ if __name__ == "__main__":
             winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move, _move2=monte.move)
         elif test_mode == "monte_random":
             winner = game_manager.play_game(prev_board, board, player_num, _move1=monte.move, _move2=random_move.move)
-        elif test_mode == "minimax_minimax":
-            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax_opt.move,
-                                            _move2=minimax.move_depth_5, print_out=False)
-        elif test_mode == "minimax_opt":
-            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_depth_5,
-                                            _move2=minimax_opt.move,
+        elif test_mode == "mm6_mm5":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_6,
+                                            _move2=minimax.move_5, print_out=False)
+        elif test_mode == "mm5_mm5":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_5,
+                                            _move2=minimax.move_5, print_out=False)
+        elif test_mode == "mm5_mmo6":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_5,
+                                            _move2=minimax_opt.move_6,
                                             print_out=False)
-        elif test_mode == "minimax_same":
-            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_depth_3,
-                                            _move2=minimax.move_depth_3,
+        elif test_mode == "mm5_mmo5":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax.move_5,
+                                            _move2=minimax_opt.move_5,
+                                            print_out=False)
+        elif test_mode == "mmo5_mm5":
+            winner = game_manager.play_game(prev_board, board, player_num, _move1=minimax_opt.move_5,
+                                            _move2=minimax.move_5,
                                             print_out=False)
         elif test_mode == "spec":
             board = testcase.test_board
@@ -69,11 +76,8 @@ if __name__ == "__main__":
             x_win += 1
         elif winner == "O":
             o_win += 1
-        print("\n\n\n---------------- Summary ----------------\n")
+        print("\n---------------- Summary ----------------\n\n\n")
+        print(f"Test mode: {test_mode}")
         print(f"Number of round: {num_round}")
         print(f"X win: {x_win}")
         print(f"O win: {o_win}")
-        print("Version: "
-              "Just affect to max step, add padding depth, nearing winner"
-              "Affect count >= 14"
-              "")

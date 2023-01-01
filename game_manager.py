@@ -38,12 +38,24 @@ def check_winner(_board: list[list[int]]):
         for ele in row:
             total = total + ele
 
-    if total == 16:
+    if total > 0:
         return 1
-    elif total == -16:
+    elif total < 0:
         return -1
     else:
         return 0
+
+
+def is_game_over(_board: list[list[int]]):
+    total = 0
+    for row in _board:
+        for ele in row:
+            total = total + ele
+
+    if abs(total) == 16:
+        return True
+    else:
+        return False
 
 
 def input_move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
@@ -100,6 +112,9 @@ def summary_after_round(board):
 def play_game(prev_board, board, cur_player=1, _move1=input_move, _move2=input_move, print_out=True):
     duration_1 = 100
     duration_2 = 100
+
+    SINGLE_MOVE_TIMEOUT = 3
+
     print("--------------------------- Game start ---------------------------\n")
     print(f"Active position: {get_active_position(prev_board, board, -cur_player)}")
 
@@ -115,7 +130,8 @@ def play_game(prev_board, board, cur_player=1, _move1=input_move, _move2=input_m
     x_time = 0
     o_time = 0
 
-    while check_winner(board) == 0:
+    winner = None
+    while not is_game_over(board):
 
         if print_out:
             print(f"Player: {'X' if cur_player == 1 else 'O'}")
@@ -128,6 +144,12 @@ def play_game(prev_board, board, cur_player=1, _move1=input_move, _move2=input_m
             end_time = time.time()
 
             exec_time = end_time - start_time
+
+            if exec_time >= SINGLE_MOVE_TIMEOUT:
+                print("\n------------------------ Single move timeout ------------------------\n")
+                winner = -1
+                break
+
             duration_1 -= exec_time
             x_time += exec_time
 
@@ -139,6 +161,11 @@ def play_game(prev_board, board, cur_player=1, _move1=input_move, _move2=input_m
             end_time = time.time()
 
             exec_time = (end_time - start_time)
+
+            if exec_time >= SINGLE_MOVE_TIMEOUT:
+                print("\n------------------------ Single move timeout ------------------------\n")
+                winner = 1
+                break
 
             duration_2 -= exec_time
             o_time += exec_time
@@ -160,29 +187,42 @@ def play_game(prev_board, board, cur_player=1, _move1=input_move, _move2=input_m
 
         x_chessman, o_chessman = summary_after_round(board)
 
-        print("\n\nTotal: {}, time: {:.3f}, current player: {} \t\t X: {}, O: {}\n".format(np.sum(np.array(board)),
-                                                                                           exec_time,
-                                                                                           'X' if cur_player == 1 else 'O',
-                                                                                           x_chessman, o_chessman))
+        print("Total: {}, time: {:.3f}, remain: {:.3f}, current player: {} \t\t X: {}, O: {}\n".format(
+            np.sum(np.array(board)),
+            exec_time,
+            duration_1 if cur_player == 1 else duration_2,
+            'X' if cur_player == 1 else 'O',
+            x_chessman, o_chessman)
+        )
 
-        print_board(board)
+        # print_board(board)
 
         cur_player = change_player(cur_player)
 
-        if x_turn > 50 or o_turn >= 50:
-            print("\n------------------------ Number of turn exceeded, draw ------------------------\n")
+        if o_turn == 50:
+            print("\n------------------------ Number of turn exceeded ------------------------\n")
+            break
 
-        if duration_1 <= 0 or duration_2 <= 0:
+        if duration_1 <= 0 and duration_2 <= 0:
             print("\n------------------------ Time out, draw ------------------------\n")
-            # exit()
+            break
+        elif duration_1 <= 0:
+            print("\n------------------------ Time out------------------------\n")
+            winner = -1
+            break
+        elif duration_2 <= 0:
+            print("\n------------------------ Time out------------------------\n")
+            winner = 1
+            break
 
-    winner = check_winner(board)
+    if winner is None:
+        winner = check_winner(board)
     winner = "X" if winner == 1 else ("O" if winner == -1 else "None")
     print(f"\n\n⭐ ⭐ ⭐ Winner {winner} ⭐ ⭐ ⭐")
     print(f"X turn: {x_turn}")
     print(f"X time: {x_time}")
     print(f"O turn: {o_turn}")
     print(f"O time: {o_time}")
-    print("\n--------------------------- Game stop ---------------------------\n\n")
+    print("\n--------------------------- Game stop ---------------------------")
 
     return winner

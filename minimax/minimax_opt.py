@@ -1,5 +1,6 @@
 import builtins
 import copy
+import time
 from enum import Enum
 import numpy as np
 
@@ -358,10 +359,15 @@ class Node(VnChessState):
         return Node(_board, updated_board, -self.player_num)
 
 
-def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3, count_node=0, root_player=-2):
+def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3, count_node=0, root_player=-2, total_duration=0,
+            timeout=3):
+    start = time.time()
 
-    if depth == max_depth:
-        return node.get_value(), count_node
+    if depth == max_depth or (timeout - total_duration < 0.1):
+        # if timeout - total_duration < 0.1:
+        #     print("\t\t\t TIMEOUT")
+        end = time.time()
+        return node.get_value(), count_node, (end - start)
 
     best, choose = (MIN, builtins.max) if is_max_player else (MAX, builtins.min)
 
@@ -371,16 +377,12 @@ def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3, count_no
         root_player = node.player_num
 
     if depth > 0:
-        # Near priority just use when exceed 14 (15 - 1) mean that nearing end game
+        # Near priority just use when exceed 16 mean that nearing end game
         # Decrease threshold may cut the heuristic
-        # if (is_max_player and (count_board * node.player_num >= 16 * node.player_num)) or len(list_action) == 0:
-        #     best = count_board + ((max_depth - depth) / (max_depth + 1))
-        #     print(f"\t\tNear priority handle at depth: {depth}, best: {best} (Just for X player)")
 
         if (node.player_num == root_player and count_board * node.player_num >= 16) or len(list_action) == 0:
             best = count_board + ((max_depth - depth) / (max_depth + 1)) * root_player
             # print(f"\t\tNear priority handle at depth: {depth}, best: {best}")
-
 
     np.random.shuffle(list_action)
 
@@ -391,12 +393,14 @@ def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3, count_no
         count_node += 1
 
         node.append_child(child, action)
-        value, count_node = minimax(child, not is_max_player, alpha, beta, depth + 1, max_depth, count_node,
-                                    root_player)
+        value, count_node, duration = minimax(child, not is_max_player, alpha, beta, depth + 1, max_depth,
+                                              count_node,
+                                              root_player, total_duration)
+        total_duration += duration
+
+        # Update for pruning
         best = choose(best, value)
-
         node.set_value(best)
-
         if is_max_player:
             alpha = choose(best, alpha)
         else:
@@ -406,33 +410,33 @@ def minimax(node: Node, is_max_player, alpha, beta, depth, max_depth=3, count_no
         if alpha >= beta:
             break
 
-    # Testing
-    # print(f"\t\t At {'MAX' if is_max_player else 'MIN'} DEPTH: {depth} -> {node.value}: ", end="")
-    # for child in node.children:
-        # print(f"{child.value}", end=" ")
-    # print("\n")
-
     node.set_value(best)
-    return best, count_node
+    end = time.time()
+    return best, count_node, end - start
 
 
-def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+def move(_prev_board, _board, _player, _remain_time_x, _remain_time_o, max_depth=5):
     cur_node = Node(_prev_board, _board, _player)
 
     is_max = False if _player == -1 else True
-    max_value, _ = minimax(node=cur_node, is_max_player=is_max, alpha=MIN, beta=MAX, depth=0, max_depth=5)
+    max_value, _, _ = minimax(node=cur_node, is_max_player=is_max, alpha=MIN, beta=MAX, depth=0, max_depth=max_depth)
 
     for child in cur_node.children:
         if max_value == child.get_value():
             start, end = child.action
-            # if np.sum(np.array(_board)) * _player >= 14:
-            #     print("DEBUG")
-            # print(f"\t MINIMAX move: {start} -> {end}")
             print(f"\t\t{'X' if _player == 1 else 'O'} choose: {max_value}")
             return child.action
 
-    # print("OPTIMAL MINIMAX")
-    # print(max_value)
-    # print([ele.value for ele in cur_node.children])
-
     return None
+
+
+def move_5(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+    return move(_prev_board, _board, _player, _remain_time_x, _remain_time_o, max_depth=5)
+
+
+def move_6(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+    return move(_prev_board, _board, _player, _remain_time_x, _remain_time_o, max_depth=6)
+
+
+def move_7(_prev_board, _board, _player, _remain_time_x, _remain_time_o):
+    return move(_prev_board, _board, _player, _remain_time_x, _remain_time_o, max_depth=7)
